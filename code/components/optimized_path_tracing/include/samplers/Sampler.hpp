@@ -4,7 +4,7 @@
 
 #include <mutex>
 
-namespace SimplePathTracer
+namespace OptimizedPathTracer
 {
     using std::mutex;   //mutex锁
     class Sampler

@@ -4,7 +4,7 @@
 
 #include "geometry/vec.hpp"
 
-namespace SimplePathTracer
+namespace OptimizedPathTracer
 {
     using namespace NRenderer;
     class Onb  //Orthonormal Basis"，表示正交基

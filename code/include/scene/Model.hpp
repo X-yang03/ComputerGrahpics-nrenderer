@@ -21,9 +21,9 @@ namespace NRenderer
 
     struct Sphere : public Entity
     {
-        Vec3 direction = {0, 0, 1};
-        Vec3 position = {0, 0, 0};
-        float radius = { 0 };
+        Vec3 direction = {0, 0, 1};     //球体方向(极轴方向)
+        Vec3 position = {0, 0, 0};          //球体位置
+        float radius = { 0 };       //半径
     };
     SHARE(Sphere);
     
@@ -35,9 +35,9 @@ namespace NRenderer
                 Vec3 v2;
                 Vec3 v3;
             };
-            Vec3 v[3];
+            Vec3 v[3];   //三角形的三个顶点局部坐标
         };
-        Vec3 normal;
+        Vec3 normal;        //三角形法线    
         Triangle()
             : v1            ()
             , v2            ()
@@ -49,21 +49,21 @@ namespace NRenderer
 
     struct Plane : public Entity
     {
-        Vec3 normal = {0, 0, 1};
-        Vec3 position = {};
-        Vec3 u = {};
-        Vec3 v = {};
+        Vec3 normal = {0, 0, 1};    //平面法线  
+        Vec3 position = {};         //平面位置
+        Vec3 u = {};                //第一条边
+        Vec3 v = {};                //第二条边
     };
     SHARE(Plane);
 
     struct Mesh : public Entity
     {
-        vector<Vec3> normals;
-        vector<Vec3> positions;
-        vector<Vec2> uvs;
-        vector<Index> normalIndices;
-        vector<Index> positionIndices;
-        vector<Index> uvIndices;
+        vector<Vec3> normals;   //法线,用索引访问
+        vector<Vec3> positions; //位置,用索引访问
+        vector<Vec2> uvs;       //uv,用索引访问
+        vector<Index> normalIndices;        //法向量索引
+        vector<Index> positionIndices;       //位置索引
+        vector<Index> uvIndices;            //uv索引
 
         bool hasNormal() const {
             return normals.size() != 0;
@@ -84,16 +84,16 @@ namespace NRenderer
             PLANE = 0X2,
             MESH = 0X3
         };
-        Type type = Type::SPHERE;
-        Index entity;
-        Index model;
+        Type type = Type::SPHERE;       //节点类型
+        Index entity;           //实体索引  
+        Index model;            //模型索引
     };
     SHARE(Node);
 
     struct Model {
-        vector<Index> nodes;
-        Vec3 translation = {0, 0, 0};
-        Vec3 scale = {1, 1, 1};
+        vector<Index> nodes;   //节点索引
+        Vec3 translation = {0, 0, 0};   //世界坐标的位置
+        Vec3 scale = {1, 1, 1};         //缩放
     };
     SHARE(Model);
 }

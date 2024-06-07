@@ -4,7 +4,7 @@
 
 #include "Sampler2d.hpp"
 
-namespace SimplePathTracer
+namespace OptimizedPathTracer
 {
     using namespace std;
     class UniformInCircle : public Sampler2d  //UniformInCircle算法生成均匀分布在单位圆内的随机二维向量

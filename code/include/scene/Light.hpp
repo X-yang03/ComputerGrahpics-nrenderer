@@ -35,7 +35,7 @@ namespace NRenderer
 
     struct AreaLight
     {
-        Vec3 radiance = {1, 1, 1};
+        Vec3 radiance = {1, 1, 1}; 
         Vec3 position = {};
         Vec3 u = {};
         Vec3 v = {};
@@ -51,14 +51,14 @@ namespace NRenderer
 
     struct DirectionalLight
     {
-        Vec3 irradiance = {1, 1, 1};
+        Vec3 irradiance = {1, 1, 1};    // 辐照度
         Vec3 direction = {};
     };
     SHARE(DirectionalLight);
 
     struct SpotLight
     {
-        Vec3 intensity = {1, 1, 1};
+        Vec3 intensity = {1, 1, 1}; // 光强
         Vec3 position = {};
         Vec3 direction = {};
         float hotSpot = 3.1415926f/4.f;

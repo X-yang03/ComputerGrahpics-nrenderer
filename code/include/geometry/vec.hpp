@@ -8,7 +8,7 @@
 
 namespace NRenderer
 {
-	using Index = unsigned int;
+	using Index = unsigned int; 
 
 	class Handle
 	{
@@ -40,7 +40,7 @@ namespace NRenderer
 	using RGBA = Vec4;
 
 	// r,g,b's range: 0 - 255
-	using RGBi = glm::u8vec3;
+	using RGBi = glm::u8vec3; //8位无符号整数
 	using RGBAi = glm::u8vec4;
 	
 	inline std::ostream& operator << (std::ostream &out, const Vec3& v) {
@@ -62,7 +62,7 @@ namespace NRenderer
 	}
 
     inline
-    float clamp(float target, float max = 1.f, float min = 0.f) {
+    float clamp(float target, float max = 1.f, float min = 0.f) { //限制target在[min, max]之间
         if (target > max) return max;
         if (target < min) return min;
         return target;

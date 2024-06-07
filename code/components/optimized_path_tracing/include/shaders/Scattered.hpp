@@ -4,7 +4,7 @@
 
 #include "Ray.hpp"
 
-namespace SimplePathTracer
+namespace OptimizedPathTracer
 {
     struct Scattered
     {

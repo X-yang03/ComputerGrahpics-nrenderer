@@ -1,6 +1,6 @@
 #pragma once
-#ifndef __SIMPLE_PATH_TRACER_HPP__
-#define __SIMPLE_PATH_TRACER_HPP__
+#ifndef __OPTIMIZED_PATH_TRACER_HPP__
+#define __OPTIMIZED_PATH_TRACER_HPP__
 
 #include "scene/Scene.hpp"
 #include "Ray.hpp"
@@ -10,12 +10,12 @@
 #include "shaders/ShaderCreator.hpp"
 
 #include <tuple>
-namespace SimplePathTracer
+namespace OptimizedPathTracer
 {
     using namespace NRenderer;
     using namespace std;
 
-    class SimplePathTracerRenderer
+    class OptimizedPathTracerRenderer
     {
     public:
     private:
@@ -27,12 +27,12 @@ namespace SimplePathTracer
         unsigned int depth;     //最大的trace递归数目
         unsigned int samples; //采样的光线数
 
-        using SCam = SimplePathTracer::Camera;
+        using SCam = OptimizedPathTracer::Camera;
         SCam camera;
 
         vector<SharedShader> shaderPrograms;
     public:
-        SimplePathTracerRenderer(SharedScene spScene)
+        OptimizedPathTracerRenderer(SharedScene spScene)
             : spScene               (spScene)
             , scene                 (*spScene)
             , camera                (spScene->camera)
@@ -42,7 +42,7 @@ namespace SimplePathTracer
             depth = scene.renderOption.depth;
             samples = scene.renderOption.samplesPerPixel;
         }
-        ~SimplePathTracerRenderer() = default;
+        ~OptimizedPathTracerRenderer() = default;
 
         using RenderResult = tuple<RGBA*, unsigned int, unsigned int>;
         RenderResult render();

@@ -37,30 +37,30 @@ namespace NRenderer
 
     struct Scene
     {
-        Camera camera;
+        Camera camera;          //摄像机
 
-        RenderOption renderOption;
+        RenderOption renderOption;  //渲染选项
 
-        Ambient ambient;
+        Ambient ambient;        //环境光
 
         // buffers
-        vector<Material> materials;
-        vector<Texture> textures;
+        vector<Material> materials;  //材质
+        vector<Texture> textures;    //纹理
 
-        vector<Model> models;
-        vector<Node> nodes;
+        vector<Model> models;         //模型
+        vector<Node> nodes;         //节点
         // object buffer
-        vector<Sphere> sphereBuffer;
-        vector<Triangle> triangleBuffer;
-        vector<Plane> planeBuffer;
-        vector<Mesh> meshBuffer;
+        vector<Sphere> sphereBuffer;    //球体
+        vector<Triangle> triangleBuffer;    //三角形
+        vector<Plane> planeBuffer;  //平面
+        vector<Mesh> meshBuffer;    //网格
 
-        vector<Light> lights;
+        vector<Light> lights;    //灯光
         // light buffer
-        vector<PointLight> pointLightBuffer;
-        vector<AreaLight> areaLightBuffer;
-        vector<DirectionalLight> directionalLightBuffer;
-        vector<SpotLight> spotLightBuffer;
+        vector<PointLight> pointLightBuffer;//点光源
+        vector<AreaLight> areaLightBuffer;  //面光源
+        vector<DirectionalLight> directionalLightBuffer;    //方向光
+        vector<SpotLight> spotLightBuffer;      //聚光灯
     };
     using SharedScene = shared_ptr<Scene>;
 } // namespace NRenderer

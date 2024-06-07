@@ -5,7 +5,7 @@
 #include "Sampler2d.hpp"
 #include <ctime>
 
-namespace SimplePathTracer
+namespace OptimizedPathTracer
 {
     using namespace std;
     class UniformInSquare: public Sampler2d //UniformInSquare算法生成均匀分布在单位正方形内的随机二维向量

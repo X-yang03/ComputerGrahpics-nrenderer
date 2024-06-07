@@ -10,6 +10,6 @@ namespace RayCast
         else diffuseColor = {1, 1, 1};
     }
     RGB Lambertian::shade(const Vec3& in, const Vec3& out, const Vec3& normal) const {
-        return diffuseColor * glm::dot(out, normal);
+        return diffuseColor * glm::dot(out, normal); // 漫反射  = 漫反射系数 * 入射光线与法线的夹角余弦值
     }
 }

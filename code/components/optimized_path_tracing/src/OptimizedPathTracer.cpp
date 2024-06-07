@@ -1,19 +1,19 @@
 #include "server/Server.hpp"
 
-#include "SimplePathTracer.hpp"
+#include "OptimizedPathTracer.hpp"
 
 #include "VertexTransformer.hpp"
 #include "intersections/intersections.hpp"
 
 #include "glm/gtc/matrix_transform.hpp"
 
-namespace SimplePathTracer
+namespace OptimizedPathTracer
 {
-    RGB SimplePathTracerRenderer::gamma(const RGB& rgb) {
+    RGB OptimizedPathTracerRenderer::gamma(const RGB& rgb) {
         return glm::sqrt(rgb);
     }
 
-    void SimplePathTracerRenderer::renderTask(RGBA* pixels, int width, int height, int off, int step) {
+    void OptimizedPathTracerRenderer::renderTask(RGBA* pixels, int width, int height, int off, int step) {
         for(int i=off; i<height; i+=step) {
             for (int j=0; j<width; j++) {
                 Vec3 color{0, 0, 0};
@@ -33,7 +33,7 @@ namespace SimplePathTracer
         }
     }
 
-    auto SimplePathTracerRenderer::render() -> RenderResult {
+    auto OptimizedPathTracerRenderer::render() -> RenderResult {
         // shaders
         shaderPrograms.clear();
         ShaderCreator shaderCreator{};
@@ -50,7 +50,7 @@ namespace SimplePathTracer
         const auto taskNums = 8;
         thread t[taskNums];
         for (int i=0; i < taskNums; i++) {
-            t[i] = thread(&SimplePathTracerRenderer::renderTask,
+            t[i] = thread(&OptimizedPathTracerRenderer::renderTask,
                 this, pixels, width, height, i, taskNums); //多线程渲染
         }
         for(int i=0; i < taskNums; i++) {
@@ -60,12 +60,12 @@ namespace SimplePathTracer
         return {pixels, width, height};
     }
 
-    void SimplePathTracerRenderer::release(const RenderResult& r) {
+    void OptimizedPathTracerRenderer::release(const RenderResult& r) {
         auto [p, w, h] = r;
         delete[] p;
     }
 
-    HitRecord SimplePathTracerRenderer::closestHitObject(const Ray& r) {
+    HitRecord OptimizedPathTracerRenderer::closestHitObject(const Ray& r) {
         HitRecord closestHit = nullopt;
         float closest = FLOAT_INF;
         for (auto& s : scene.sphereBuffer) {
@@ -92,7 +92,7 @@ namespace SimplePathTracer
         return closestHit; 
     }
     
-    tuple<float, Vec3> SimplePathTracerRenderer::closestHitLight(const Ray& r) {
+    tuple<float, Vec3> OptimizedPathTracerRenderer::closestHitLight(const Ray& r) {
         Vec3 v = {};
         HitRecord closest = getHitRecord(FLOAT_INF, {}, {}, {});  //使用INF初始化,表示最近交点在无穷远处
         for (auto& a : scene.areaLightBuffer) {
@@ -106,7 +106,7 @@ namespace SimplePathTracer
         return { closest->t, v };
     }
 
-    RGB SimplePathTracerRenderer::trace(const Ray& r, int currDepth) {
+    RGB OptimizedPathTracerRenderer::trace(const Ray& r, int currDepth) {
         if (currDepth == depth) return scene.ambient.constant; //递归数目达到depth
         auto hitObject = closestHitObject(r);   //光线最近的射中物体
         auto [ t, emitted ] = closestHitLight(r);   

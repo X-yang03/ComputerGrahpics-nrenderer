@@ -5,7 +5,7 @@
 #include "Sampler3d.hpp"
 #include <ctime>
 
-namespace SimplePathTracer
+namespace OptimizedPathTracer
 {
     using namespace std;
     class HemiSphere : public Sampler3d 

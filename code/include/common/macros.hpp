@@ -12,6 +12,6 @@
 
 #include <memory>
 
-#define SHARE(__T__) using Shared##__T__ = std::shared_ptr<__T__>
+#define SHARE(__T__) using Shared##__T__ = std::shared_ptr<__T__> //创建共享指针
 
 #endif

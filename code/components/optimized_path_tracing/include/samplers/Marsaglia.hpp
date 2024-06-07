@@ -5,7 +5,7 @@
 #include "Sampler3d.hpp"
 #include <ctime>
 
-namespace SimplePathTracer
+namespace OptimizedPathTracer
 {
     using namespace std;
     class Marsaglia : public Sampler3d  //Marsaglia算法生成均匀分布在单位球内的随机三维向量

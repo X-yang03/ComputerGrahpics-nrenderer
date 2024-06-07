@@ -4,7 +4,7 @@
 
 #include "Shader.hpp"
 
-namespace SimplePathTracer
+namespace OptimizedPathTracer
 {
     class Lambertian : public Shader
     {
