@@ -90,4 +90,20 @@ namespace OptimizedPathTracer::Intersection
         }
         return getMissRecord();
     }
+
+    HitRecord xAABB(const Ray& ray, const AABB& aabb, float tMin, float tMax){
+        for (int i = 0; i < 3; i++) {  
+            //对每一对平面 ,进行求交,求出tmin和tmax, 由于每对平面都是axis-aligned
+            //所以只用考虑在这对平面法向量分量上的tmin和tmax
+            float invD = 1.0f / ray.direction[i];
+            float t_in = (aabb._min[i] - ray.origin[i]) / ray.direction[i]; //分量相除 得到tmin
+            float t_out = (aabb._max[i] - ray.origin[i]) / ray.direction[i]; //分量相除 得到tmax
+            tMin = t_in > tMin ? t_in : tMin; //tMin要取最大值
+            tMax = t_out < tMax ? t_out : tMax; //tMax要取最小值
+        }
+        if (tMin < tMax && tMax >= 0) {
+            return getHitRecord(tMin, ray.at(tMin), {}, {});
+            }
+        return getMissRecord();
+    }
 }

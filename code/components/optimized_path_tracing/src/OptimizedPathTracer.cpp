@@ -47,6 +47,8 @@ namespace OptimizedPathTracer
         VertexTransformer vertexTransformer{};
         vertexTransformer.exec(spScene);
 
+        this->bvhTree = make_shared<BVHTree>(spScene);
+
         const auto taskNums = 8;
         thread t[taskNums];
         for (int i=0; i < taskNums; i++) {

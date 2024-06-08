@@ -85,8 +85,8 @@ namespace NRenderer
             MESH = 0X3
         };
         Type type = Type::SPHERE;       //节点类型
-        Index entity;           //实体索引  
-        Index model;            //模型索引
+        Index entity;           //实体的索引  
+        Index model;            //模型索引,所属的模型
     };
     SHARE(Node);
 

@@ -1,0 +1,116 @@
+#pragma once
+#ifndef __AABB_HPP__
+#define __AABB_HPP__
+
+#include "scene/Scene.hpp"
+#include "Ray.hpp"
+#include "Camera.hpp"
+#include "intersections/HitRecord.hpp"
+#include "geometry/vec.hpp"
+#include "shaders/ShaderCreator.hpp"
+namespace OptimizedPathTracer
+{
+    using namespace NRenderer;
+    using namespace std;
+    
+    class AABB{
+    public:
+        Vec3 _min;  //左下角
+        Vec3 _max;   //右上角
+        enum class Type
+        {
+            NOLEAF = 0x0,
+            SPHERE = 0x1,
+            TRIANGLE = 0X2,
+            PLANE = 0X3,
+            MESH = 0X4
+        };
+        Type type = Type::NOLEAF;
+
+        //SharedEntity entity = nullptr;
+        SHARE(AABB);
+        SharedAABB left = nullptr;
+        SharedAABB right = nullptr;
+
+        union
+        {
+            Sphere* sp;
+            Triangle* tr;
+            Plane* pl;
+            Triangle* ms;
+        };
+
+        AABB() = default;
+
+        AABB(SharedAABB left, SharedAABB right){
+            _min = Vec3(fmin(left->_min.x, right->_min.x),
+                        fmin(left->_min.y, right->_min.y),
+                        fmin(left->_min.z, right->_min.z));
+            _max = Vec3(fmax(left->_max.x, right->_max.x),
+                        fmax(left->_max.y, right->_max.y),
+                        fmax(left->_max.z, right->_max.z));
+            this->left = left;
+            this->right = right;
+        }
+
+        AABB(Sphere* sp){
+            type = Type::SPHERE;
+            this->sp = sp;
+            float r = sp->radius;
+            Vec3 pos = sp->position;
+            _min = pos - Vec3(r, r, r);
+            _max = pos + Vec3(r, r, r);
+        }
+
+        AABB(Triangle* tr){
+            type = Type::TRIANGLE;
+            this->tr = tr;
+            Vec3 v1 = tr->v[0];
+            Vec3 v2 = tr->v[1];
+            Vec3 v3 = tr->v[2];
+            _min = Vec3(fmin(v1.x, fmin(v2.x, v3.x)),
+                        fmin(v1.y, fmin(v2.y, v3.y)),
+                        fmin(v1.z, fmin(v2.z, v3.z)));
+            _max = Vec3(fmax(v1.x, fmax(v2.x, v3.x)),
+                        fmax(v1.y, fmax(v2.y, v3.y)),
+                        fmax(v1.z, fmax(v2.z, v3.z)));
+        }   
+
+        AABB(Plane* pl){   //Todo: could be optimized later
+            type = Type::PLANE;
+            this->pl = pl;
+            Vec3 n = pl->normal;
+            Vec3 p = pl->position;
+            Vec3 u = pl->u;
+            Vec3 v = pl->v;
+
+            Vec3 p2 = p + u;
+            Vec3 p3 = p + v;    
+            Vec3 p4 = p + u + v;
+
+            _min = Vec3(fmin(p.x, fmin(p2.x, fmin(p3.x, p4.x))),
+                        fmin(p.y, fmin(p2.y, fmin(p3.y, p4.y))),
+                        fmin(p.z, fmin(p2.z, fmin(p3.z, p4.z))));
+
+            _max = Vec3(fmax(p.x, fmax(p2.x, fmax(p3.x, p4.x))),
+                        fmax(p.y, fmax(p2.y, fmax(p3.y, p4.y))),
+                        fmax(p.z, fmax(p2.z, fmax(p3.z, p4.z))));
+        }
+
+
+    };
+
+    // AABB mother_box(const AABB& a, const AABB& b){
+    //     Vec3 _min(fmin(a._min.x, b._min.x),
+    //                fmin(a._min.y, b._min.y),
+    //                fmin(a._min.z, b._min.z));
+    //     Vec3 _max(fmax(a._max.x, b._max.x),
+    //              fmax(a._max.y, b._max.y),
+    //              fmax(a._max.z, b._max.z));
+    //     return AABB(_min, _max);
+    // }
+    SHARE(AABB);
+}
+
+
+#endif

@@ -8,6 +8,7 @@
 #include "intersections/HitRecord.hpp"
 
 #include "shaders/ShaderCreator.hpp"
+#include "BVH.hpp"
 
 #include <tuple>
 namespace OptimizedPathTracer
@@ -21,6 +22,8 @@ namespace OptimizedPathTracer
     private:
         SharedScene spScene;
         Scene& scene;
+
+        SharedBVHTree bvhTree = nullptr;
 
         unsigned int width;
         unsigned int height;

@@ -5,6 +5,7 @@
 #include "HitRecord.hpp"
 #include "Ray.hpp"
 #include "scene/Scene.hpp"
+#include "AABB.hpp"
 
 namespace OptimizedPathTracer
 {
@@ -14,6 +15,7 @@ namespace OptimizedPathTracer
         HitRecord xSphere(const Ray& ray, const Sphere& s, float tMin = 0.f, float tMax = FLOAT_INF);
         HitRecord xPlane(const Ray& ray, const Plane& p, float tMin = 0.f, float tMax = FLOAT_INF);
         HitRecord xAreaLight(const Ray& ray, const AreaLight& a, float tMin = 0.f, float tMax = FLOAT_INF);
+        HitRecord xAABB(const Ray& ray, const AABB& aabb, float tMin = 0.f, float tMax = FLOAT_INF);
     }
 }
 
