@@ -49,6 +49,12 @@ namespace OptimizedPathTracer
 
         this->bvhTree = make_shared<BVHTree>(spScene);
 
+        std::string vertexstr = "min: " + std::to_string(bvhTree->root->_min.x) + " " + std::to_string(bvhTree->root->_min.y) + " " + std::to_string(bvhTree->root->_min.z) + " max: " + std::to_string(bvhTree->root->_max.x) + " " + std::to_string(bvhTree->root->_max.y) + " " + std::to_string(bvhTree->root->_max.z);
+        getServer().logger.log(vertexstr);
+        int node_num = bvhTree->aabbs.size();
+        std::string str= "BVH Tree has " + std::to_string(node_num) + " nodes.";  
+        getServer().logger.log(str);
+
         const auto taskNums = 8;
         thread t[taskNums];
         for (int i=0; i < taskNums; i++) {
@@ -70,27 +76,42 @@ namespace OptimizedPathTracer
     HitRecord OptimizedPathTracerRenderer::closestHitObject(const Ray& r) {
         HitRecord closestHit = nullopt;
         float closest = FLOAT_INF;
-        for (auto& s : scene.sphereBuffer) {
-            auto hitRecord = Intersection::xSphere(r, s, 0.000001, closest);
-            if (hitRecord && hitRecord->t < closest) {
-                closest = hitRecord->t;
-                closestHit = hitRecord;
-            }
+        float closest1 = FLOAT_INF;
+        auto hitRecord1 = Intersection::xBVH(r, bvhTree->root, 0.000001, closest); //BVH加速
+        if (hitRecord1 && hitRecord1->t < closest1 ) {
+            return hitRecord1;
+            closest1 = hitRecord1->t;
+            std::string str = "closest1: " + std::to_string(closest1);
+            //getServer().logger.log(str);
+            closestHit = hitRecord1;
+
         }
-        for (auto& t : scene.triangleBuffer) {
-            auto hitRecord = Intersection::xTriangle(r, t, 0.000001, closest);
-            if (hitRecord && hitRecord->t < closest) {
-                closest = hitRecord->t;
-                closestHit = hitRecord;
-            }
-        }
-        for (auto& p : scene.planeBuffer) {
-            auto hitRecord = Intersection::xPlane(r, p, 0.000001, closest);
-            if (hitRecord && hitRecord->t < closest) {
-                closest = hitRecord->t;
-                closestHit = hitRecord;
-            }
-        }
+
+        // for (auto& s : scene.sphereBuffer) {
+        //     auto hitRecord = Intersection::xSphere(r, s, 0.000001, closest);
+        //     if (hitRecord && hitRecord->t < closest) {
+        //         closest = hitRecord->t;
+        //         closestHit = hitRecord;
+        //     }
+        // }
+        // for (auto& t : scene.triangleBuffer) {
+        //     auto hitRecord = Intersection::xTriangle(r, t, 0.000001, closest);
+        //     if (hitRecord && hitRecord->t < closest) {
+        //         closest = hitRecord->t;
+        //         closestHit = hitRecord;
+        //     }
+        // }
+        // for (auto& p : scene.planeBuffer) {
+        //     auto hitRecord = Intersection::xPlane(r, p, 0.000001, closest);
+        //     if (hitRecord && hitRecord->t < closest) {
+        //         closest = hitRecord->t;
+        //         closestHit = hitRecord;
+        //     }
+        // }
+        // if(closest1 == closest){
+        //     std::string str = "closest1: " + std::to_string(closest1) + " closest: " + std::to_string(closest);
+        //     getServer().logger.log(str);
+        // }
         return closestHit; 
     }
     

@@ -1,5 +1,4 @@
 #include "intersections/intersections.hpp"
-
 namespace OptimizedPathTracer::Intersection
 {
     HitRecord xTriangle(const Ray& ray, const Triangle& t, float tMin, float tMax) {
@@ -91,19 +90,51 @@ namespace OptimizedPathTracer::Intersection
         return getMissRecord();
     }
 
-    HitRecord xAABB(const Ray& ray, const AABB& aabb, float tMin, float tMax){
+    HitRecord xAABB(const Ray& ray, const SharedAABB& aabb, float tMin, float tMax){
         for (int i = 0; i < 3; i++) {  
             //对每一对平面 ,进行求交,求出tmin和tmax, 由于每对平面都是axis-aligned
             //所以只用考虑在这对平面法向量分量上的tmin和tmax
             float invD = 1.0f / ray.direction[i];
-            float t_in = (aabb._min[i] - ray.origin[i]) / ray.direction[i]; //分量相除 得到tmin
-            float t_out = (aabb._max[i] - ray.origin[i]) / ray.direction[i]; //分量相除 得到tmax
+            float t_in = (aabb->_min[i] - ray.origin[i]) * invD; //分量相除 得到tmin
+            float t_out = (aabb->_max[i] - ray.origin[i]) * invD; //分量相除 得到tmax
+            if (invD < 0.0f)  std::swap(t_in, t_out);
             tMin = t_in > tMin ? t_in : tMin; //tMin要取最大值
             tMax = t_out < tMax ? t_out : tMax; //tMax要取最小值
         }
-        if (tMin < tMax && tMax >= 0) {
+        if (tMin < tMax && tMax >= 0) { //与AABB相交
+            if(aabb->type == AABB::Type::SPHERE) {
+                return xSphere(ray, *aabb->sp, tMin, tMax);
+            }
+            else if(aabb->type == AABB::Type::TRIANGLE) {
+                return xTriangle(ray, *aabb->tr, tMin, tMax);
+            }
+            else if(aabb->type == AABB::Type::PLANE) {
+                return xPlane(ray, *aabb->pl, tMin, tMax);
+            }
             return getHitRecord(tMin, ray.at(tMin), {}, {});
             }
         return getMissRecord();
     }
+
+    HitRecord xBVH(const Ray& ray, const SharedAABB& node, float tMin, float tMax) {
+
+        auto hitRecord = xAABB(ray, node, tMin, tMax);
+        if (! (hitRecord && hitRecord->t < tMax) ) {
+            return getMissRecord();     
+        }
+        //if (xAABB(ray, node, tMin, tMax) == nullopt) return getMissRecord();
+        if (node->left && node->right) { // internal node
+            auto left = xBVH(ray, node->left, tMin, tMax);
+            auto right = xBVH(ray, node->right, tMin, tMax);
+            if ((left && left->t <tMax) && (right && right->t < tMax)) {
+                return left->t < right->t ? left : right;
+            }
+            else if (left && left->t <tMax) return left;
+            else if (right && right->t < tMax) return right;
+            return getMissRecord();
+        }
+        else { // leaf node
+            return xAABB(ray, node, tMin, tMax);
+        }
+    }   
 }

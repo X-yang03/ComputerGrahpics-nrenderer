@@ -65,9 +65,9 @@ namespace OptimizedPathTracer
         AABB(Triangle* tr){
             type = Type::TRIANGLE;
             this->tr = tr;
-            Vec3 v1 = tr->v[0];
-            Vec3 v2 = tr->v[1];
-            Vec3 v3 = tr->v[2];
+            Vec3 v1 = tr->v1;
+            Vec3 v2 = tr->v2;
+            Vec3 v3 = tr->v3;
             _min = Vec3(fmin(v1.x, fmin(v2.x, v3.x)),
                         fmin(v1.y, fmin(v2.y, v3.y)),
                         fmin(v1.z, fmin(v2.z, v3.z)));
@@ -84,9 +84,15 @@ namespace OptimizedPathTracer
             Vec3 u = pl->u;
             Vec3 v = pl->v;
 
+            float epsilon = 0.1f;
             Vec3 p2 = p + u;
             Vec3 p3 = p + v;    
             Vec3 p4 = p + u + v;
+
+            p -= epsilon * n;
+            p2 -= epsilon * n;
+            p3 += epsilon * n;
+            p4 += epsilon * n;
 
             _min = Vec3(fmin(p.x, fmin(p2.x, fmin(p3.x, p4.x))),
                         fmin(p.y, fmin(p2.y, fmin(p3.y, p4.y))),
