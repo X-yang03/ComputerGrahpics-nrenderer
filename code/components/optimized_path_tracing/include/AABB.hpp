@@ -82,13 +82,10 @@ namespace OptimizedPathTracer
             this->pl = pl;
             Vec3 n = pl->normal;
             Vec3 p = pl->position;
-            Vec3 u = pl->u;
-            Vec3 v = pl->v;
-
             float epsilon = 0.1f;
-            Vec3 p2 = p + u;
-            Vec3 p3 = p + v;    
-            Vec3 p4 = p + u + v;
+            Vec3 p2 = p + pl->u;
+            Vec3 p3 = p + pl->v;    
+            Vec3 p4 = p + pl->u + pl->v;
 
             p -= epsilon * n;
             p2 -= epsilon * n;
@@ -102,6 +99,31 @@ namespace OptimizedPathTracer
             _max = Vec3(fmax(p.x, fmax(p2.x, fmax(p3.x, p4.x))),
                         fmax(p.y, fmax(p2.y, fmax(p3.y, p4.y))),
                         fmax(p.z, fmax(p2.z, fmax(p3.z, p4.z))));
+        }
+
+        AABB(Mesh* ms, int index){   //mesh相当于带有material的triangle
+            type = Type::MESH;
+            Vec3 min = Vec3(FLT_MAX, FLT_MAX, FLT_MAX);
+            Vec3 max = Vec3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+            Vec3 v1 = ms->positions[ms->positionIndices[index]];
+            Vec3 v2 = ms->positions[ms->positionIndices[index + 1]];
+            Vec3 v3 = ms->positions[ms->positionIndices[index + 2]];   //该mesh的三个顶点
+
+            this->ms = new Triangle();
+            this->ms->v1 = v1;
+            this->ms->v2 = v2;
+            this->ms->v3 = v3;  //保存为三角形
+            this->ms->material = ms->material;
+            this->ms->normal = glm::normalize(glm::cross(v2 - v1, v3 - v1));
+            min = Vec3(fmin(v1.x, fmin(v2.x, v3.x)),
+                        fmin(v1.y, fmin(v2.y, v3.y)),
+                        fmin(v1.z, fmin(v2.z, v3.z)));
+            max = Vec3(fmax(v1.x, fmax(v2.x, v3.x)),
+                        fmax(v1.y, fmax(v2.y, v3.y)),
+                        fmax(v1.z, fmax(v2.z, v3.z)));
+
+            _min = min;
+            _max = max;
         }
 
 

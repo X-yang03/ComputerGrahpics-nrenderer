@@ -19,18 +19,6 @@ namespace OptimizedPathTracer
     using namespace NRenderer;
     using namespace std;
 
-    // struct BVHNode{
-    //     AABB box;
-    //     BVHNode* left;
-    //     BVHNode* right;
-    //     bool isLeaf;
-    //     int start;
-    //     int end;
-    //     BVHNode(const AABB& box, BVHNode* left, BVHNode* right, bool isLeaf, int start, int end)
-    //         : box(box), left(left), right(right), isLeaf(isLeaf), start(start), end(end)
-    //     {}
-    // };
-
     class BVHTree{
 
     public:
@@ -88,9 +76,12 @@ namespace OptimizedPathTracer
                 else if(node.type == Node::Type::PLANE){
                     aabbs.push_back(make_shared<AABB>(&(spscene->planeBuffer[node.entity])));
                 }
-                // else if(node.type == Node::Type::MESH){
-                //     aabbs.push_back(make_shared<AABB>(spscene->meshBuffer[node.entity]));
-                // }
+                else if(node.type == Node::Type::MESH){
+                    Mesh mesh = spscene->meshBuffer[node.entity];
+                    for(int i = 0; i < mesh.positionIndices.size(); i += 3){  //每三个为一个三角形
+                        aabbs.push_back(make_shared<AABB>(&mesh, i));
+                    }
+                }
                 else{
                     throw runtime_error("Unknown Node Type");
                 }
@@ -104,12 +95,6 @@ namespace OptimizedPathTracer
                 cout << "  ";
             }
             cout << "min: " << node->_min.x << " " << node->_min.y << " " << node->_min.z << " max: " << node->_max.x << " " << node->_max.y << " " << node->_max.z << endl;
-            // if(node->type != AABB::Type::NOLEAF){
-            //     for(int i = 0; i < depth; i++){
-            //     cout << "  ";
-            // }
-            // cout<<"leaf"<<endl;
-            // }
             printTree(node->left, depth + 1);
             printTree(node->right, depth + 1);
         }

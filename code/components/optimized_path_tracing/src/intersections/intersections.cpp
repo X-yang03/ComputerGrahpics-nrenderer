@@ -115,11 +115,11 @@ namespace OptimizedPathTracer::Intersection
         return getMissRecord();
     }
 
+    //对于叶子节点，直接求与物体的交点，还是先求AABB的交点再求物体的交点， 有不同的trade-off
     HitRecord xBVH(const Ray& ray, const SharedAABB& node, float tMin, float tMax) {
 
         auto hitRecord = xAABB(ray, node, tMin, tMax);  //当前AABB有无交点
         if (hitRecord == nullopt) {
-            //getServer().logger.log("here");
             return getMissRecord();     
         }
         if (node->type == AABB::Type::NOLEAF) { // internal node
@@ -141,6 +141,9 @@ namespace OptimizedPathTracer::Intersection
                 }
                 else if(node->type == AABB::Type::PLANE) {
                     return xPlane(ray, *node->pl, tMin, tMax);
+                }
+                else if(node->type == AABB::Type::MESH){
+                    return xTriangle(ray, *node->ms, tMin, tMax);
                 }
                 return getHitRecord(tMin, ray.at(tMin), {}, {});
             }

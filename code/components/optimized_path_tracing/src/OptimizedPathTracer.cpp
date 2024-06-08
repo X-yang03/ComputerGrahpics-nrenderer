@@ -51,13 +51,6 @@ namespace OptimizedPathTracer
 
         this->bvhTree = make_shared<BVHTree>(spScene);
         bvhTree->printTree(bvhTree->root, 0);
-
-        std::string vertexstr = "min: " + std::to_string(bvhTree->root->_min.x) + " " + std::to_string(bvhTree->root->_min.y) + " " + std::to_string(bvhTree->root->_min.z) + " max: " + std::to_string(bvhTree->root->_max.x) + " " + std::to_string(bvhTree->root->_max.y) + " " + std::to_string(bvhTree->root->_max.z);
-        getServer().logger.log(vertexstr);
-        int node_num = bvhTree->aabbs.size();
-        std::string str= "BVH Tree has " + std::to_string(node_num) + " nodes.";  
-        getServer().logger.log(str);
-
         const auto taskNums = 8;
         thread t[taskNums];
         for (int i=0; i < taskNums; i++) {
