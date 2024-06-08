@@ -80,11 +80,6 @@ namespace OptimizedPathTracer
         auto hitRecord1 = Intersection::xBVH(r, bvhTree->root, 0.000001, closest); //BVH加速
         if (hitRecord1 && hitRecord1->t < closest1 ) {
             return hitRecord1;
-            closest1 = hitRecord1->t;
-            std::string str = "closest1: " + std::to_string(closest1);
-            //getServer().logger.log(str);
-            closestHit = hitRecord1;
-
         }
 
         // for (auto& s : scene.sphereBuffer) {

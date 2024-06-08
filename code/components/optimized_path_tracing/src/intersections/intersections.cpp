@@ -122,7 +122,6 @@ namespace OptimizedPathTracer::Intersection
         if (! (hitRecord && hitRecord->t < tMax) ) {
             return getMissRecord();     
         }
-        //if (xAABB(ray, node, tMin, tMax) == nullopt) return getMissRecord();
         if (node->left && node->right) { // internal node
             auto left = xBVH(ray, node->left, tMin, tMax);
             auto right = xBVH(ray, node->right, tMin, tMax);
