@@ -96,4 +96,8 @@ namespace SimplePathTracer::Intersection
     int64_t getIntersectionCount() {
             return intersectCnt.load(); // 读取原子计数器的值
         }
+
+    void resetIntersectionCount() {
+        intersectCnt.store(0); // 将计数器重置为0
+    }
 }

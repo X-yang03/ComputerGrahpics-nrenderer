@@ -51,6 +51,7 @@ namespace OptimizedPathTracer
                         fmax(left->_max.z, right->_max.z));
             this->left = left;
             this->right = right;
+            this->type = Type::NOLEAF;
         }
 
         AABB(Sphere* sp){

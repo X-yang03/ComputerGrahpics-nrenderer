@@ -9,6 +9,8 @@
 
 namespace OptimizedPathTracer
 {
+    // int64_t optNum = 0;
+    // int64_t ordNum = 0;
     RGB OptimizedPathTracerRenderer::gamma(const RGB& rgb) {
         return glm::sqrt(rgb);
     }
@@ -69,6 +71,9 @@ namespace OptimizedPathTracer
 
         int64_t totalIntersections = Intersection::getIntersectionCount();
         cout << "Total intersection calls: " << totalIntersections << std::endl;
+        Intersection::resetIntersectionCount();
+
+
         return {pixels, width, height};
     }
 
@@ -84,9 +89,14 @@ namespace OptimizedPathTracer
         auto hitRecord1 = Intersection::xBVH(r, bvhTree->root, 0.000001, closest); //BVH加速
         if (hitRecord1 && hitRecord1->t < closest1 ) {
             closest1 = hitRecord1->t;
-
             return hitRecord1;
         }
+        // int64_t totalIntersections = Intersection::getIntersectionCount();
+        // Intersection::resetIntersectionCount();
+        // assert(totalIntersections < 16);
+        // optNum+=totalIntersections;
+
+        //return hitRecord1;
 
         // for (auto& s : scene.sphereBuffer) {
         //     auto hitRecord = Intersection::xSphere(r, s, 0.000001, closest);
@@ -109,10 +119,14 @@ namespace OptimizedPathTracer
         //         closestHit = hitRecord;
         //     }
         // }
-        // if(closest1 != closest){
-        //     std::string str = "closest1: " + std::to_string(closest1) + " closest: " + std::to_string(closest);
-        //     getServer().logger.log(str);
+        // totalIntersections = Intersection::getIntersectionCount();
+        // Intersection::resetIntersectionCount();
+        // //assert(totalIntersections == 16);
+        // if(totalIntersections != 16){
+        //     cout<<"totalIntersections: "<<totalIntersections<<endl;
         // }
+        // ordNum+=totalIntersections;
+        
         return closestHit; 
     }
     

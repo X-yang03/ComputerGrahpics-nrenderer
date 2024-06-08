@@ -16,6 +16,7 @@ namespace SimplePathTracer
         HitRecord xPlane(const Ray& ray, const Plane& p, float tMin = 0.f, float tMax = FLOAT_INF);
         HitRecord xAreaLight(const Ray& ray, const AreaLight& a, float tMin = 0.f, float tMax = FLOAT_INF);
         int64_t getIntersectionCount();
+        void resetIntersectionCount();
     }
 }
 

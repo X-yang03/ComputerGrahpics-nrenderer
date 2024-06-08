@@ -58,7 +58,8 @@ namespace SimplePathTracer
         }
         getServer().logger.log("Done...");
         int64_t totalIntersections = Intersection::getIntersectionCount();
-        cout << "Total intersection calls: " << totalIntersections << std::endl;
+        cout << "Simple intersection calls: " << totalIntersections << std::endl;
+        Intersection::resetIntersectionCount();
         return {pixels, width, height};
     }
 
@@ -70,7 +71,9 @@ namespace SimplePathTracer
     HitRecord SimplePathTracerRenderer::closestHitObject(const Ray& r) {
         HitRecord closestHit = nullopt;
         float closest = FLOAT_INF;
+
         for (auto& s : scene.sphereBuffer) {
+
             auto hitRecord = Intersection::xSphere(r, s, 0.000001, closest);
             if (hitRecord && hitRecord->t < closest) {
                 closest = hitRecord->t;
@@ -78,6 +81,7 @@ namespace SimplePathTracer
             }
         }
         for (auto& t : scene.triangleBuffer) {
+
             auto hitRecord = Intersection::xTriangle(r, t, 0.000001, closest);
             if (hitRecord && hitRecord->t < closest) {
                 closest = hitRecord->t;
@@ -85,12 +89,14 @@ namespace SimplePathTracer
             }
         }
         for (auto& p : scene.planeBuffer) {
+
             auto hitRecord = Intersection::xPlane(r, p, 0.000001, closest);
             if (hitRecord && hitRecord->t < closest) {
                 closest = hitRecord->t;
                 closestHit = hitRecord;
             }
         }
+        
         return closestHit; 
     }
     

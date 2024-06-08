@@ -94,7 +94,8 @@ namespace OptimizedPathTracer::Intersection
         return getMissRecord();
     }
 
-    HitRecord xAABB(const Ray& ray, const SharedAABB& aabb, float tMin, float tMax){
+    inline HitRecord xAABB(const Ray& ray, const SharedAABB& aabb, float tMin, float tMax){
+        
          //intersectCnt++;
         for (int i = 0; i < 3; i++) {  
             //对每一对平面 ,进行求交,求出tmin和tmax, 由于每对平面都是axis-aligned
@@ -110,6 +111,7 @@ namespace OptimizedPathTracer::Intersection
         if (tMin < tMax && tMax >= 0) { //与AABB相交
             return getHitRecord(tMin, ray.at(tMin), {}, {});
             }
+        //cout<<"no hit"<<endl;
         return getMissRecord();
     }
 
@@ -120,7 +122,7 @@ namespace OptimizedPathTracer::Intersection
             //getServer().logger.log("here");
             return getMissRecord();     
         }
-        if (node->left  && node->right) { // internal node
+        if (node->type == AABB::Type::NOLEAF) { // internal node
             auto left = xBVH(ray, node->left, tMin, tMax);
             auto right = xBVH(ray, node->right, tMin, tMax);
             if ((left != nullopt) && (right != nullopt)) {
@@ -147,4 +149,8 @@ namespace OptimizedPathTracer::Intersection
     int64_t getIntersectionCount() {
             return intersectCnt.load(); // 读取原子计数器的值
         }
+
+    void resetIntersectionCount() {
+        intersectCnt.store(0); // 将计数器重置为0
+    }
 }
