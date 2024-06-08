@@ -37,7 +37,7 @@ namespace OptimizedPathTracer
         vector<SharedAABB> aabbs;  
         SharedAABB root;
         SharedScene spscene;
-        
+
         SharedAABB build_BVH(vector<SharedAABB>& aabbs, int start, int end){ //[start, end)
             if(start == end || start == end - 1){   //leaf node,仅有一个Entity
                 return aabbs[start];
@@ -78,7 +78,6 @@ namespace OptimizedPathTracer
 
         BVHTree(SharedScene spscene){
             this->spscene = spscene;
-
             for(auto& node: spscene->nodes){
                 if(node.type == Node::Type::SPHERE){
                      aabbs.push_back(make_shared<AABB>(&(spscene->sphereBuffer[node.entity])));
@@ -98,6 +97,22 @@ namespace OptimizedPathTracer
             }
             root = build_BVH(aabbs, 0, aabbs.size());
         }     
+
+        void printTree(SharedAABB node, int depth){
+            if(node == nullptr) return;
+            for(int i = 0; i < depth; i++){
+                cout << "  ";
+            }
+            cout << "min: " << node->_min.x << " " << node->_min.y << " " << node->_min.z << " max: " << node->_max.x << " " << node->_max.y << " " << node->_max.z << endl;
+            // if(node->type != AABB::Type::NOLEAF){
+            //     for(int i = 0; i < depth; i++){
+            //     cout << "  ";
+            // }
+            // cout<<"leaf"<<endl;
+            // }
+            printTree(node->left, depth + 1);
+            printTree(node->right, depth + 1);
+        }
 
     };
     SHARE(BVHTree);

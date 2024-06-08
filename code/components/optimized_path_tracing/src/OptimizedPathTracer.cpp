@@ -48,6 +48,7 @@ namespace OptimizedPathTracer
         vertexTransformer.exec(spScene);
 
         this->bvhTree = make_shared<BVHTree>(spScene);
+        bvhTree->printTree(bvhTree->root, 0);
 
         std::string vertexstr = "min: " + std::to_string(bvhTree->root->_min.x) + " " + std::to_string(bvhTree->root->_min.y) + " " + std::to_string(bvhTree->root->_min.z) + " max: " + std::to_string(bvhTree->root->_max.x) + " " + std::to_string(bvhTree->root->_max.y) + " " + std::to_string(bvhTree->root->_max.z);
         getServer().logger.log(vertexstr);
@@ -79,6 +80,8 @@ namespace OptimizedPathTracer
         float closest1 = FLOAT_INF;
         auto hitRecord1 = Intersection::xBVH(r, bvhTree->root, 0.000001, closest); //BVH加速
         if (hitRecord1 && hitRecord1->t < closest1 ) {
+            closest1 = hitRecord1->t;
+
             return hitRecord1;
         }
 
@@ -103,7 +106,7 @@ namespace OptimizedPathTracer
         //         closestHit = hitRecord;
         //     }
         // }
-        // if(closest1 == closest){
+        // if(closest1 != closest){
         //     std::string str = "closest1: " + std::to_string(closest1) + " closest: " + std::to_string(closest);
         //     getServer().logger.log(str);
         // }

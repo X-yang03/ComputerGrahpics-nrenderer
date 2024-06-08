@@ -1,4 +1,5 @@
 #include "intersections/intersections.hpp"
+#include "server/Server.hpp"
 namespace OptimizedPathTracer::Intersection
 {
     HitRecord xTriangle(const Ray& ray, const Triangle& t, float tMin, float tMax) {
@@ -102,15 +103,6 @@ namespace OptimizedPathTracer::Intersection
             tMax = t_out < tMax ? t_out : tMax; //tMax要取最小值
         }
         if (tMin < tMax && tMax >= 0) { //与AABB相交
-            if(aabb->type == AABB::Type::SPHERE) {
-                return xSphere(ray, *aabb->sp, tMin, tMax);
-            }
-            else if(aabb->type == AABB::Type::TRIANGLE) {
-                return xTriangle(ray, *aabb->tr, tMin, tMax);
-            }
-            else if(aabb->type == AABB::Type::PLANE) {
-                return xPlane(ray, *aabb->pl, tMin, tMax);
-            }
             return getHitRecord(tMin, ray.at(tMin), {}, {});
             }
         return getMissRecord();
@@ -118,22 +110,32 @@ namespace OptimizedPathTracer::Intersection
 
     HitRecord xBVH(const Ray& ray, const SharedAABB& node, float tMin, float tMax) {
 
-        auto hitRecord = xAABB(ray, node, tMin, tMax);
-        if (! (hitRecord && hitRecord->t < tMax) ) {
+        auto hitRecord = xAABB(ray, node, tMin, tMax);  //当前AABB有无交点
+        if (hitRecord == nullopt) {
+            //getServer().logger.log("here");
             return getMissRecord();     
         }
-        if (node->left && node->right) { // internal node
+        if (node->left  && node->right) { // internal node
             auto left = xBVH(ray, node->left, tMin, tMax);
             auto right = xBVH(ray, node->right, tMin, tMax);
-            if ((left && left->t <tMax) && (right && right->t < tMax)) {
+            if ((left != nullopt) && (right != nullopt)) {
                 return left->t < right->t ? left : right;
             }
-            else if (left && left->t <tMax) return left;
-            else if (right && right->t < tMax) return right;
+            else if (left != nullopt) return left;
+            else if (right != nullopt) return right;
             return getMissRecord();
         }
         else { // leaf node
-            return xAABB(ray, node, tMin, tMax);
-        }
+                if(node->type == AABB::Type::SPHERE) {
+                    return xSphere(ray, *node->sp, tMin, tMax);
+                }
+                else if(node->type == AABB::Type::TRIANGLE) {
+                    return xTriangle(ray, *node->tr, tMin, tMax);
+                }
+                else if(node->type == AABB::Type::PLANE) {
+                    return xPlane(ray, *node->pl, tMin, tMax);
+                }
+                return getHitRecord(tMin, ray.at(tMin), {}, {});
+            }
     }   
 }
