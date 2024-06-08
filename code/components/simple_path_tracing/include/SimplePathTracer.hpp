@@ -6,7 +6,6 @@
 #include "Ray.hpp"
 #include "Camera.hpp"
 #include "intersections/HitRecord.hpp"
-
 #include "shaders/ShaderCreator.hpp"
 
 #include <tuple>

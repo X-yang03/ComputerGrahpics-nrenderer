@@ -3,6 +3,7 @@
 namespace OptimizedPathTracer::Intersection
 {
     HitRecord xTriangle(const Ray& ray, const Triangle& t, float tMin, float tMax) {
+        intersectCnt++;
         const auto& v1 = t.v1;
         const auto& v2 = t.v2;
         const auto& v3 = t.v3;
@@ -29,6 +30,7 @@ namespace OptimizedPathTracer::Intersection
 
     }
     HitRecord xSphere(const Ray& ray, const Sphere& s, float tMin, float tMax) {
+         intersectCnt++;
         const auto& position = s.position;
         const auto& r = s.radius;
         Vec3 oc = ray.origin - position;
@@ -54,6 +56,7 @@ namespace OptimizedPathTracer::Intersection
         return getMissRecord();
     }
     HitRecord xPlane(const Ray& ray, const Plane& p, float tMin, float tMax) {
+         intersectCnt++;
         auto Np_dot_d = glm::dot(ray.direction, p.normal);
         if (Np_dot_d < 0.0000001f && Np_dot_d > -0.00000001f) return getMissRecord();
         float dp = -glm::dot(p.position, p.normal);
@@ -92,6 +95,7 @@ namespace OptimizedPathTracer::Intersection
     }
 
     HitRecord xAABB(const Ray& ray, const SharedAABB& aabb, float tMin, float tMax){
+         //intersectCnt++;
         for (int i = 0; i < 3; i++) {  
             //对每一对平面 ,进行求交,求出tmin和tmax, 由于每对平面都是axis-aligned
             //所以只用考虑在这对平面法向量分量上的tmin和tmax
@@ -101,6 +105,7 @@ namespace OptimizedPathTracer::Intersection
             if (invD < 0.0f)  std::swap(t_in, t_out);
             tMin = t_in > tMin ? t_in : tMin; //tMin要取最大值
             tMax = t_out < tMax ? t_out : tMax; //tMax要取最小值
+            if (tMin > tMax) return getMissRecord(); //无交点
         }
         if (tMin < tMax && tMax >= 0) { //与AABB相交
             return getHitRecord(tMin, ray.at(tMin), {}, {});
@@ -138,4 +143,8 @@ namespace OptimizedPathTracer::Intersection
                 return getHitRecord(tMin, ray.at(tMin), {}, {});
             }
     }   
+
+    int64_t getIntersectionCount() {
+            return intersectCnt.load(); // 读取原子计数器的值
+        }
 }
