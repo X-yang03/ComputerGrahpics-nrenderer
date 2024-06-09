@@ -140,16 +140,6 @@ namespace OptimizedPathTracer
 
 
     };
-
-    // AABB mother_box(const AABB& a, const AABB& b){
-    //     Vec3 _min(fmin(a._min.x, b._min.x),
-    //                fmin(a._min.y, b._min.y),
-    //                fmin(a._min.z, b._min.z));
-    //     Vec3 _max(fmax(a._max.x, b._max.x),
-    //              fmax(a._max.y, b._max.y),
-    //              fmax(a._max.z, b._max.z));
-    //     return AABB(_min, _max);
-    // }
     SHARE(AABB);
 }
 

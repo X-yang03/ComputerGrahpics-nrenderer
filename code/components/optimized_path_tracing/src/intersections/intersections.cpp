@@ -117,23 +117,8 @@ namespace OptimizedPathTracer::Intersection
 
     //对于叶子节点，直接求与物体的交点，还是先求AABB的交点再求物体的交点， 有不同的trade-off
     HitRecord xBVH(const Ray& ray, const SharedAABB& node, float tMin, float tMax) {
-
-        auto hitRecord = xAABB(ray, node, tMin, tMax);  //当前AABB有无交点
-        if (hitRecord == nullopt) {
-            return getMissRecord();     
-        }
-        if (node->type == AABB::Type::NOLEAF) { // internal node
-            auto left = xBVH(ray, node->left, tMin, tMax);
-            auto right = xBVH(ray, node->right, tMin, tMax);
-            if ((left != nullopt) && (right != nullopt)) {
-                return left->t < right->t ? left : right;
-            }
-            else if (left != nullopt) return left;
-            else if (right != nullopt) return right;
-            return getMissRecord();
-        }
-        else { // leaf node
-                if(node->type == AABB::Type::SPHERE) {
+        if(node->type != AABB::Type::NOLEAF){ //非叶结点, 直接与物体求交
+            if(node->type == AABB::Type::SPHERE) {
                     return xSphere(ray, *node->sp, tMin, tMax);
                 }
                 else if(node->type == AABB::Type::TRIANGLE) {
@@ -145,8 +130,36 @@ namespace OptimizedPathTracer::Intersection
                 else if(node->type == AABB::Type::MESH){
                     return xTriangle(ray, *node->ms, tMin, tMax);
                 }
-                return getHitRecord(tMin, ray.at(tMin), {}, {});
+        }
+        auto hitRecord = xAABB(ray, node, tMin, tMax);  //当前AABB有无交点
+        if (hitRecord == nullopt) {
+            return getMissRecord();     
+        }
+        //if (node->type == AABB::Type::NOLEAF) { // internal node
+            auto left = xBVH(ray, node->left, tMin, tMax);
+            auto right = xBVH(ray, node->right, tMin, tMax);
+            if ((left != nullopt) && (right != nullopt)) {
+                return left->t < right->t ? left : right;
             }
+            else if (left != nullopt) return left;
+            else if (right != nullopt) return right;
+            return getMissRecord();
+        //}
+        // else { // leaf node
+        //         if(node->type == AABB::Type::SPHERE) {
+        //             return xSphere(ray, *node->sp, tMin, tMax);
+        //         }
+        //         else if(node->type == AABB::Type::TRIANGLE) {
+        //             return xTriangle(ray, *node->tr, tMin, tMax);
+        //         }
+        //         else if(node->type == AABB::Type::PLANE) {
+        //             return xPlane(ray, *node->pl, tMin, tMax);
+        //         }
+        //         else if(node->type == AABB::Type::MESH){
+        //             return xTriangle(ray, *node->ms, tMin, tMax);
+        //         }
+        //         return getHitRecord(tMin, ray.at(tMin), {}, {});
+        //     }
     }   
 
     int64_t getIntersectionCount() {

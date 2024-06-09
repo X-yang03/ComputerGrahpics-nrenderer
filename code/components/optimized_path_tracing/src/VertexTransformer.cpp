@@ -27,7 +27,7 @@ namespace OptimizedPathTracer
             }
             else if (node.type == Node::Type::MESH) {
                 s = glm::scale(s, model.scale);
-                t = t * s; //¸´ºÏ¾ØÕó±ä»»
+                t = t * s; //??????
                 auto& mesh = scene.meshBuffer[node.entity];
                 for (int i=0; i<mesh.positions.size(); i++) {
                     mesh.positions[i] = t*Vec4{mesh.positions[i], 1};

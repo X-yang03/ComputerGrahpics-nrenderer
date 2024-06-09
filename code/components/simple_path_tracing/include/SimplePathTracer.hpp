@@ -54,6 +54,8 @@ namespace SimplePathTracer
         RGB trace(const Ray& ray, int currDepth);
         HitRecord closestHitObject(const Ray& r);
         tuple<float, Vec3> closestHitLight(const Ray& r);
+
+        void handleMesh();
     };
 }
 

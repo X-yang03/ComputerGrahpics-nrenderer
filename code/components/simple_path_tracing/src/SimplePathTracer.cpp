@@ -9,6 +9,22 @@
 
 namespace SimplePathTracer
 {
+    void SimplePathTracerRenderer::handleMesh() {  //处理mesh
+        for (auto& m : scene.meshBuffer) {
+            
+            for(int i = 0; i < m.positionIndices.size(); i += 3){  //每三个为一个三角形
+                Triangle tr = Triangle{};
+                tr.v1 = m.positions[m.positionIndices[i]];
+                tr.v2 = m.positions[m.positionIndices[i+1]];
+                tr.v3 = m.positions[m.positionIndices[i+2]];
+                tr.material = m.material;
+                tr.normal = glm::normalize(glm::cross(tr.v2 - tr.v1, tr.v3 - tr.v1));
+                scene.triangleBuffer.push_back(tr);
+            }
+                
+        }
+    }
+
     RGB SimplePathTracerRenderer::gamma(const RGB& rgb) {
         return glm::sqrt(rgb);
     }
@@ -47,7 +63,9 @@ namespace SimplePathTracer
         VertexTransformer vertexTransformer{};
         vertexTransformer.exec(spScene);
 
-        const auto taskNums = 8;
+        handleMesh(); //处理mesh
+
+        const auto taskNums = 16;
         thread t[taskNums];
         for (int i=0; i < taskNums; i++) {
             t[i] = thread(&SimplePathTracerRenderer::renderTask,
