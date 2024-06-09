@@ -51,7 +51,11 @@ namespace OptimizedPathTracer
 
         this->bvhTree = make_shared<BVHTree>(spScene);
         bvhTree->printTree(bvhTree->root, 0);
-        const auto taskNums = 8;
+
+        int nodeNum = bvhTree->aabbs.size();
+        cout<<"nodeNum: "<<nodeNum<<endl;
+
+        const auto taskNums = 16;
         thread t[taskNums];
         for (int i=0; i < taskNums; i++) {
             t[i] = thread(&OptimizedPathTracerRenderer::renderTask,

@@ -44,6 +44,7 @@ namespace OptimizedPathTracer
             height = scene.renderOption.height;
             depth = scene.renderOption.depth;
             samples = scene.renderOption.samplesPerPixel;
+            //this->bvhTree = make_shared<BVHTree>(spScene);
         }
         ~OptimizedPathTracerRenderer() = default;
 
