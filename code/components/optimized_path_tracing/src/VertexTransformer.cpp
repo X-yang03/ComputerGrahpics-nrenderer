@@ -3,11 +3,6 @@
 
 namespace OptimizedPathTracer
 {
-    struct Model {
-        vector<Index> nodes;   //节点索引
-        Vec3 translation = { 0, 0, 0 };   //世界坐标的位置
-        Vec3 scale = { 1, 1, 1 };         //缩放
-    };
     void VertexTransformer::exec(SharedScene spScene) {
         auto& scene = *spScene;
         for (auto& node : scene.nodes) {

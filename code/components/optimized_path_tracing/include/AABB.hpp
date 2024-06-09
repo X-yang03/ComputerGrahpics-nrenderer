@@ -75,6 +75,12 @@ namespace OptimizedPathTracer
             _max = Vec3(fmax(v1.x, fmax(v2.x, v3.x)),
                         fmax(v1.y, fmax(v2.y, v3.y)),
                         fmax(v1.z, fmax(v2.z, v3.z)));
+            if(_min.x == _max.x)
+                _max.x += 0.1f;
+            else if(_min.y == _max.y)
+                _max.y += 0.1f;
+            else if(_min.z == _max.z)
+                _max.z += 0.1f;  //如果是平面的话,加上一个微小的偏移，形成包围盒
         }   
 
         AABB(Plane* pl){   //Todo: could be optimized later
@@ -124,6 +130,12 @@ namespace OptimizedPathTracer
 
             _min = min;
             _max = max;
+            if(_min.x == _max.x)
+                _max.x += 0.1f;
+            else if(_min.y == _max.y)
+                _max.y += 0.1f;
+            else if(_min.z == _max.z)
+                _max.z += 0.1f;  //如果是平面的话,加上一个微小的偏移，形成包围盒
         }
 
 
