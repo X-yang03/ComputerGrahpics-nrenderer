@@ -52,7 +52,7 @@ namespace NRenderer
                     Property("specularEx", PW::FloatType{})
                 );
                 Add(templates, 2, string("Dielectric"), //折射材质有2个属性, 折射率, 吸收率
-                    Property("ior", PW::FloatType{float(1.0)}),
+                    Property("ior", PW::FloatType{float(1.5)}),
                     Property("absorbed", PW::RGBType{RGB{1, 1, 1}})
                 );
                 Add(templates, 3, string("Conductor"), //导体有3个属性, 自身颜色(吸收率),实部折射率eta和消光系数k
@@ -64,6 +64,11 @@ namespace NRenderer
                     Property("diffuseColor", PW::RGBType{}),
                     Property("specularColor", PW::RGBType{}),
                     Property("refractIndex", PW::FloatType{})
+                );
+                Add(templates, 5, string("Glossy"), 
+                    Property("absorbed", PW::RGBType{RGB{1, 1, 1}}),
+                    Property("eta", PW::FloatType{float(0.29)}),
+                    Property("k", PW::FloatType{float(3.88)})  //copper
                 );
                 
             }

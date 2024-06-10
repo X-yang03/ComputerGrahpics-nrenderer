@@ -6,7 +6,8 @@
 #include "Lambertian.hpp"
 #include "Glass.hpp"
 #include "Conductor.hpp"
-
+#include "Plastic.hpp"
+#include "Glossy.hpp"
 namespace OptimizedPathTracer
 {
     class ShaderCreator
@@ -28,6 +29,13 @@ namespace OptimizedPathTracer
                 shader = make_shared<Conductor>(material, t);
                 break;
 
+            case Material::PLASTIC :
+                shader = make_shared<Plastic>(material, t);
+                break;
+
+            case Material::GLOSSY :
+                shader = make_shared<Glossy>(material, t);
+                break;
             default:
                 shader = make_shared<Lambertian>(material, t);
                 break;

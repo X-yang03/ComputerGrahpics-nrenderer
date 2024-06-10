@@ -100,7 +100,8 @@ namespace NRenderer
             PHONG,
             DIELECTRIC,
             CONDUCTOR,
-            PLASTIC
+            PLASTIC,
+            GLOSSY
         };
         
         unsigned int type = 0;
