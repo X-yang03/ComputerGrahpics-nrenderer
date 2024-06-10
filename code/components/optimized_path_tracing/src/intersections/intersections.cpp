@@ -75,20 +75,20 @@ namespace OptimizedPathTracer::Intersection
         return getMissRecord();
     }
     HitRecord xAreaLight(const Ray& ray, const AreaLight& a, float tMin, float tMax) {
-        Vec3 normal = glm::cross(a.u, a.v);
+        Vec3 normal = glm::cross(a.u, a.v);  //光源法向量
         Vec3 position = a.position;
         auto Np_dot_d = glm::dot(ray.direction, normal);
-        if (Np_dot_d < 0.0000001f && Np_dot_d > -0.00000001f) return getMissRecord();
+        if (Np_dot_d < 0.0000001f && Np_dot_d > -0.00000001f) return getMissRecord(); //ray与光源法向量垂直,无交点
         float dp = -glm::dot(position, normal);
-        float t = (-dp - glm::dot(normal, ray.origin))/Np_dot_d;
-        if (t >= tMax || t < tMin) return getMissRecord();
+        float t = (-dp - glm::dot(normal, ray.origin))/Np_dot_d; //计算光线与区域光源的交点在光线上的参数t
+        if (t >= tMax || t < tMin) return getMissRecord(); 
         // cross test
-        Vec3 hitPoint = ray.at(t);
+        Vec3 hitPoint = ray.at(t); //计算交点位置
         Mat3x3 d{a.u, a.v, glm::cross(a.u, a.v)};
         d = glm::inverse(d);
-        auto res  = d * (hitPoint - position);
+        auto res  = d * (hitPoint - position);  //将交点的位置转换到区域光源的局部坐标系
         auto u = res.x, v = res.y;
-        if ((u<=1 && u>=0) && (v<=1 && v>=0)) {
+        if ((u<=1 && u>=0) && (v<=1 && v>=0)) { //局部坐标在[0, 1]范围内，说明交点在区域光源的范围内
             return getHitRecord(t, hitPoint, normal, {});
         }
         return getMissRecord();

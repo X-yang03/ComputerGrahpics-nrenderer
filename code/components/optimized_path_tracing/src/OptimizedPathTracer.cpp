@@ -9,8 +9,6 @@
 
 namespace OptimizedPathTracer
 {
-    // int64_t optNum = 0;
-    // int64_t ordNum = 0;
     RGB OptimizedPathTracerRenderer::gamma(const RGB& rgb) {
         return glm::sqrt(rgb);
     }
@@ -130,6 +128,7 @@ namespace OptimizedPathTracer
     tuple<float, Vec3> OptimizedPathTracerRenderer::closestHitLight(const Ray& r) {
         Vec3 v = {};
         HitRecord closest = getHitRecord(FLOAT_INF, {}, {}, {});  //使用INF初始化,表示最近交点在无穷远处
+        //Cornell Box中只有一个面光源
         for (auto& a : scene.areaLightBuffer) {
             auto hitRecord = Intersection::xAreaLight(r, a, 0.000001, closest->t); //计算光线r与区域光源a的交点，得到一个HitRecord类型的对象hitRecord
             if (hitRecord && closest->t > hitRecord->t) { //ray r 和区域光有交点
@@ -143,6 +142,61 @@ namespace OptimizedPathTracer
 
     RGB OptimizedPathTracerRenderer::trace(const Ray& r, int currDepth) {
         if (currDepth == depth) return scene.ambient.constant; //递归数目达到depth
+        auto hitObject = closestHitObject(r);   //光线最近的射中物体
+        auto [ t, emitted ] = closestHitLight(r);   
+        // hit object
+        if (hitObject && hitObject->t < t) { //hitObject在相机和面光源之间
+            auto mtlHandle = hitObject->material;
+            auto scattered = shaderPrograms[mtlHandle.index()]->shade(r, hitObject->hitPoint, hitObject->normal);
+            if(spScene->materials[mtlHandle.index()].type == 0){
+                auto scatteredRay = scattered.ray;
+                auto attenuation = scattered.attenuation;
+                auto emitted = scattered.emitted;
+                auto next = trace(scatteredRay, currDepth+1);
+                float n_dot_in = glm::dot(hitObject->normal, scatteredRay.direction);
+                float pdf = scattered.pdf;
+                /**
+                 * emitted      - Le(p, w_0)
+                 * next         - Li(p, w_i)
+                 * n_dot_in     - cos<n, w_i>
+                 * atteunation  - BRDF
+                 * pdf          - p(w)
+                 **/
+                return emitted + attenuation * next * n_dot_in / pdf; //自发光emitted, 加上来自外部的光线的亮度
+            }
+            else if(spScene->materials[mtlHandle.index()].type == 2){
+                auto reflex = scattered.ray;
+                auto reflexRatio = scattered.attenuation;
+                auto refraction = scattered.refractionDir;
+                auto refraction_rate = scattered.refractRatio;
+                auto reflex_emit = trace(reflex, currDepth + 1);
+                auto refraction_emit = reflexRatio ==Vec3(0.f) ? RGB(0.f) :trace(refraction, currDepth + 1);
+                return reflex_emit*reflexRatio + refraction_emit * refraction_rate;
+            }
+        }
+        // 
+        else if (t != FLOAT_INF) {  //hitObject在面光源,直接返回面光源的激发亮度
+            return emitted;
+        }
+        else {
+            return Vec3{0}; //没有hitObject,也没有面光源
+        }
+    }
+
+    RGB OptimizedPathTracerRenderer::OptTrace(const Ray& r, int currDepth){
+        if (currDepth == depth) return scene.ambient.constant; //递归数目达到depth
+        Vec3 origin = r.origin;
+        Vec3 L_dir = Vec3{0};
+        Vec3 lightPos = scene.areaLightBuffer[0].position;
+        if(currDepth!=0){
+            Ray shadowRay{origin, glm::normalize(lightPos - origin)};
+            auto dis = glm::distance(lightPos, origin);
+            auto hitRecord = closestHitObject(shadowRay);
+            if(hitRecord && hitRecord->t < dis){
+                L_dir = scene.areaLightBuffer[0].radiance;
+            }
+        }
+
         auto hitObject = closestHitObject(r);   //光线最近的射中物体
         auto [ t, emitted ] = closestHitLight(r);   
         // hit object
@@ -165,7 +219,7 @@ namespace OptimizedPathTracer
             return emitted + attenuation * next * n_dot_in / pdf; //自发光emitted, 加上来自外部的光线的亮度
         }
         // 
-        else if (t != FLOAT_INF) {  //hitObject在面光源之后,直接返回面光源的激发亮度
+        else if (t != FLOAT_INF) {  //hitObject在面光源,直接返回面光源的激发亮度
             return emitted;
         }
         else {

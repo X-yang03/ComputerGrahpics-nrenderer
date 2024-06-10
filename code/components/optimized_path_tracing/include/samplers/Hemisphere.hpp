@@ -27,7 +27,7 @@ namespace OptimizedPathTracer
             float r = sqrt(1 - epsilon1 * epsilon1);  //随机采样的r
             float x = cos(2*C_PI*epsilon2) * r;  //半球面立体角为2pi, 2pi*epsilon2为随机采样的theta角
             float y = sin(2*C_PI*epsilon2) * r; //半球面立体角为2pi, 2pi*epsilon2为随机采样的phi角
-            float z = epsilon1; //实际上使用柱坐标
+            float z = epsilon1; //实际上使用柱坐标, 转换为直角坐标
             return { x, y, z }; //随机采样点
         }
     };

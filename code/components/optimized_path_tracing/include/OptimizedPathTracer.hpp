@@ -57,6 +57,7 @@ namespace OptimizedPathTracer
 
         RGB gamma(const RGB& rgb);
         RGB trace(const Ray& ray, int currDepth);
+        RGB OptTrace(const Ray& ray, int currDepth);
         HitRecord closestHitObject(const Ray& r);
         tuple<float, Vec3> closestHitLight(const Ray& r);
     };
