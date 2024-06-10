@@ -148,7 +148,7 @@ namespace OptimizedPathTracer
         if (hitObject && hitObject->t < t) { //hitObject在相机和面光源之间
             auto mtlHandle = hitObject->material;
             auto scattered = shaderPrograms[mtlHandle.index()]->shade(r, hitObject->hitPoint, hitObject->normal);
-            if(spScene->materials[mtlHandle.index()].type == 0){
+            if(spScene->materials[mtlHandle.index()].type == Material::LAMBERTIAN){
                 auto scatteredRay = scattered.ray;
                 auto attenuation = scattered.attenuation;
                 auto emitted = scattered.emitted;
@@ -164,13 +164,13 @@ namespace OptimizedPathTracer
                  **/
                 return emitted + attenuation * next * n_dot_in / pdf; //自发光emitted, 加上来自外部的光线的亮度
             }
-            else if(spScene->materials[mtlHandle.index()].type == 2){
+            else if(spScene->materials[mtlHandle.index()].type == Material::DIELECTRIC){
                 auto reflex = scattered.ray;
                 auto reflexRatio = scattered.attenuation;
                 auto refraction = scattered.refractionDir;
                 auto refraction_rate = scattered.refractRatio;
                 auto reflex_emit = trace(reflex, currDepth + 1);
-                auto refraction_emit = reflexRatio ==Vec3(0.f) ? RGB(0.f) :trace(refraction, currDepth + 1);
+                auto refraction_emit = reflexRatio == Vec3(0.f) ? RGB(0.f) :trace(refraction, currDepth + 1);
                 return reflex_emit*reflexRatio + refraction_emit * refraction_rate;
             }
         }
