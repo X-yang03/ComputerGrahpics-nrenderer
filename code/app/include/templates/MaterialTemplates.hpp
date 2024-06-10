@@ -55,8 +55,10 @@ namespace NRenderer
                     Property("ior", PW::FloatType{float(1.0)}),
                     Property("absorbed", PW::RGBType{RGB{1, 1, 1}})
                 );
-                Add(templates, 3, string("Conductor"), //导体只有一个属性, 反射率
-                    Property("reflect", PW::RGBType{RGB{1, 1, 1}})
+                Add(templates, 3, string("Conductor"), //导体有3个属性, 自身颜色(吸收率),实部折射率eta和消光系数k
+                    Property("absorbed", PW::RGBType{RGB{1, 1, 1}}),
+                    Property("eta", PW::FloatType{float(0.29)}),
+                    Property("k", PW::FloatType{float(3.88)})  //copper
                 );
                 Add(templates, 4, string("Plastic"), //塑料有3个属性, 漫反射颜色, 镜面反射颜色, 镜面反射指数
                     Property("diffuseColor", PW::RGBType{}),

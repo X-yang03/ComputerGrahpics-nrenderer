@@ -171,7 +171,16 @@ namespace OptimizedPathTracer
                 auto refractRatio = scattered.refractRatio;
                 auto reflectRGB = reflectRatio == Vec3(0.f) ? RGB(0.f) :trace(reflect, currDepth + 1); //如果是全透射,则没有反射光线
                 auto refractRGB = refractRatio == Vec3(0.f) ? RGB(0.f) :trace(refract, currDepth + 1);  //如果是全反射,则没有折射光线
-                return reflectRGB*reflectRatio + refractRGB * refractRatio;
+                return reflectRGB * reflectRatio + refractRGB * refractRatio;
+            }
+            else if(spScene->materials[mtlHandle.index()].type == Material::CONDUCTOR){
+                auto reflect = scattered.ray;
+                auto reflectRatio = scattered.attenuation;
+                auto reflectRGB = reflectRatio == Vec3(0.f) ? RGB(0.f) :trace(reflect, currDepth + 1); 
+                return reflectRGB * reflectRatio;
+            }
+            else{
+                return Vec3(0.f);
             }
         }
         // 

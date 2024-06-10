@@ -5,6 +5,7 @@
 #include "Shader.hpp"
 #include "Lambertian.hpp"
 #include "Glass.hpp"
+#include "Conductor.hpp"
 
 namespace OptimizedPathTracer
 {
@@ -23,6 +24,10 @@ namespace OptimizedPathTracer
             case Material::DIELECTRIC :
                 shader = make_shared<Glass>(material, t);
                 break;
+            case Material::CONDUCTOR :
+                shader = make_shared<Conductor>(material, t);
+                break;
+
             default:
                 shader = make_shared<Lambertian>(material, t);
                 break;
