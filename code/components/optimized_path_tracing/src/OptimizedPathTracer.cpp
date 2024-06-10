@@ -165,13 +165,13 @@ namespace OptimizedPathTracer
                 return emitted + attenuation * next * n_dot_in / pdf; //自发光emitted, 加上来自外部的光线的亮度
             }
             else if(spScene->materials[mtlHandle.index()].type == Material::DIELECTRIC){
-                auto reflex = scattered.ray;
-                auto reflexRatio = scattered.attenuation;
-                auto refraction = scattered.refractionDir;
-                auto refraction_rate = scattered.refractRatio;
-                auto reflex_emit = trace(reflex, currDepth + 1);
-                auto refraction_emit = reflexRatio == Vec3(0.f) ? RGB(0.f) :trace(refraction, currDepth + 1);
-                return reflex_emit*reflexRatio + refraction_emit * refraction_rate;
+                auto reflect = scattered.ray;
+                auto reflectRatio = scattered.attenuation;
+                auto refract = scattered.refractionDir;
+                auto refractRatio = scattered.refractRatio;
+                auto reflectRGB = reflectRatio == Vec3(0.f) ? RGB(0.f) :trace(reflect, currDepth + 1); //如果是全透射,则没有反射光线
+                auto refractRGB = refractRatio == Vec3(0.f) ? RGB(0.f) :trace(refract, currDepth + 1);  //如果是全反射,则没有折射光线
+                return reflectRGB*reflectRatio + refractRGB * refractRatio;
             }
         }
         // 

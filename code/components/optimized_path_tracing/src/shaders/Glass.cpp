@@ -19,8 +19,8 @@ namespace OptimizedPathTracer
         //使用Schlick's approximation来计算反射率 R = R0 + (1 - R0)(1 - cosθ)^5
         //https://en.wikipedia.org/wiki/Schlick%27s_approximation
         Vec3 origin = hitPoint;
-        Vec3 N = normal;
-        Vec3 I = ray.direction;
+        Vec3 N = glm::normalize(normal); //法向量
+        Vec3 I = glm::normalize(ray.direction);
         float cosTheta = glm::dot(-I, N);  //入射角cos
         bool isEntering = cosTheta > 0; //是否从外部射入
         if (!isEntering) { //如果从内部射入 ,则将法向量取反,并将cosTheta取反
@@ -43,11 +43,16 @@ namespace OptimizedPathTracer
         //Vec3 refractionDirection = isEntering ? glm::normalize(glm::refract(I, N, 1.f / ior)) : glm::normalize(glm::refract(I, N, ior));
         Vec3 refractRatio = (1 - reflectance) * absorbed; //折射率
 
-        float sin_r = std::pow(1 - std::pow(glm::dot(I, N), 2), 0.5) / ior; //sin(折射角) = sin(入射角) / 折射率
-        if (sin_r > 1.f) { //全反射
-            reflectRatio = absorbed; 
+        //float sin_r = std::pow(1 - std::pow(glm::dot(I, N), 2), 0.5) / ior; //sin(折射角) = sin(入射角) / 折射率
+        if (cosTheta < 0.01f) { //全反射, 没有折射
+            reflectRatio = absorbed;  
             refractionDirection = Vec3(0.f);
             refractRatio = Vec3(0.f);
+        }
+        else if(cosTheta > 0.99f) { //全透射
+            reflectRatio = Vec3(0.f);
+            reflectionDirection = Vec3(0.f);
+            refractRatio = absorbed;
         }
         return {
             Ray{origin, reflectionDirection}, //反射光线
