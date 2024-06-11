@@ -196,22 +196,27 @@ namespace OptimizedPathTracer
                 Vec3 shadowRayDir = glm::normalize(samplePoint - hitObject->hitPoint);
                 Ray shadowRay{hitObject->hitPoint, shadowRayDir};
                 auto shadowHit = closestHitObject(shadowRay);
-                float distanceToLight = glm::length(samplePoint - hitObject->hitPoint);
+                float distance2Light = glm::length(samplePoint - hitObject->hitPoint);
                 float cosTheta = glm::dot(-shadowRayDir, normal);
-                
-                if(shadowHit && shadowHit->t < distanceToLight || cosTheta < 0.01){
-                    auto next = OptTrace(scatteredRay, currDepth+1);
-                    float n_dot_in = glm::dot(hitObject->normal, scatteredRay.direction);
-                    float pdf = scattered.pdf;
-                    return emitted + attenuation * next * n_dot_in / pdf;
+                Vec3 L_dir;
+                auto radiance = scene.areaLightBuffer[0].radiance;  //直接光照
+                if(shadowHit && shadowHit->t < distance2Light || cosTheta < 0.0001){  //如果被遮挡， 或与光源法向量夹角过小
+                    L_dir = Vec3(0.f);
                 }
                 else{
-                    float lightPdf = 1.0f / (glm::length(scene.areaLightBuffer[0].u) * glm::length(scene.areaLightBuffer[0].v)); // 光源pdf, 1/A
-                    Vec3 lightRadiance = scene.areaLightBuffer[0].radiance;
-                    float n_dot_in = glm::dot(hitObject->normal, shadowRayDir); 
-                    Vec3 directLighting = lightRadiance * n_dot_in * cosTheta / (distanceToLight * distanceToLight * lightPdf);
-                    return emitted + attenuation * directLighting;
+                    float pdf_light = 1.0f / (glm::length(scene.areaLightBuffer[0].u) * glm::length(scene.areaLightBuffer[0].v)); // 光源pdf, 1/A
+                    float n_dot_in_light = glm::dot(hitObject->normal, shadowRayDir); 
+                    Vec3 directLighting = radiance * n_dot_in_light * cosTheta / (distance2Light * distance2Light * pdf_light);
+                    L_dir = attenuation * directLighting;
                 }
+                
+                auto next = OptTrace(scatteredRay, currDepth+1);
+                if(next == radiance) next = Vec3(0.f);  //如果随机采样追踪的光线直接射到光源上, 避免二次叠加
+                float n_dot_in = glm::dot(hitObject->normal, scatteredRay.direction);
+                float pdf = scattered.pdf;
+                Vec3 L_indir = attenuation * next * n_dot_in / pdf;
+
+                return emitted + L_dir + L_indir;
             }
             else if(spScene->materials[mtlHandle.index()].type == Material::DIELECTRIC){
                 auto reflect = scattered.ray;
