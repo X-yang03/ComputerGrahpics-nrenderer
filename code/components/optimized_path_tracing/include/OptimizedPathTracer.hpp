@@ -56,10 +56,12 @@ namespace OptimizedPathTracer
         void renderTask(RGBA* pixels, int width, int height, int off, int step);
 
         RGB gamma(const RGB& rgb);
+        tuple<Vec3, Vec3> sampleOnlight(const AreaLight& light);
         RGB trace(const Ray& ray, int currDepth);
         RGB OptTrace(const Ray& ray, int currDepth);
         HitRecord closestHitObject(const Ray& r);
         tuple<float, Vec3> closestHitLight(const Ray& r);
+        
     };
 }
 
