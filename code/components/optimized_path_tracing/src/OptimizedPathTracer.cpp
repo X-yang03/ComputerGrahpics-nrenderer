@@ -260,4 +260,88 @@ namespace OptimizedPathTracer
             return Vec3{0}; //没有hitObject,也没有面光源
         }
         }
+    
+    RGB OptimizedPathTracerRenderer::ProbablityTrace(const Ray& r, int currDepth){
+        if (currDepth == depth) return scene.ambient.constant; //递归数目达到depth
+        auto hitObject = closestHitObject(r);   //光线最近的射中物体
+        auto [ t, emitted ] = closestHitLight(r);   
+        float stop_prob = 0.85f;
+        // hit object
+        if (hitObject && hitObject->t < t) { //hitObject在相机和面光源之间
+            auto mtlHandle = hitObject->material;
+            auto scattered = shaderPrograms[mtlHandle.index()]->shade(r, hitObject->hitPoint, hitObject->normal);
+            if(spScene->materials[mtlHandle.index()].type == Material::LAMBERTIAN){
+                auto scatteredRay = scattered.ray;
+                auto attenuation = scattered.attenuation;
+                auto emitted = scattered.emitted;
+
+                auto [samplePoint, normal] = sampleOnlight(scene.areaLightBuffer[0]);
+                Vec3 shadowRayDir = glm::normalize(samplePoint - hitObject->hitPoint);
+                Ray shadowRay{hitObject->hitPoint, shadowRayDir};
+                auto shadowHit = closestHitObject(shadowRay);
+                float distance2Light = glm::length(samplePoint - hitObject->hitPoint);
+                float cosTheta = glm::dot(-shadowRayDir, normal);
+                Vec3 L_dir;
+                auto radiance = scene.areaLightBuffer[0].radiance;  //直接光照
+                if(shadowHit && shadowHit->t < distance2Light || cosTheta < 0.0001){  //如果被遮挡， 或与光源法向量夹角过小
+                    L_dir = Vec3(0.f);
+                }
+                else{
+                    float pdf_light = 1.0f / (glm::length(scene.areaLightBuffer[0].u) * glm::length(scene.areaLightBuffer[0].v)); // 光源pdf, 1/A
+                    float n_dot_in_light = glm::dot(hitObject->normal, shadowRayDir); 
+                    Vec3 directLighting = radiance * n_dot_in_light * cosTheta / (distance2Light * distance2Light * pdf_light);
+                    L_dir = attenuation * directLighting;
+                }
+                if(defaultSamplerInstance<UniformSampler>().sample1d() < stop_prob) //随机终止
+                    return emitted + L_dir;
+                auto next = OptTrace(scatteredRay, currDepth+1);
+                if(next == radiance) next = Vec3(0.f);  //如果随机采样追踪的光线直接射到光源上, 避免二次叠加
+                float n_dot_in = glm::dot(hitObject->normal, scatteredRay.direction);
+                float pdf = scattered.pdf;
+                Vec3 L_indir = attenuation * next * n_dot_in / pdf;
+
+                return emitted + L_dir + L_indir/(1-stop_prob);
+            }
+            else if(spScene->materials[mtlHandle.index()].type == Material::DIELECTRIC){
+                auto reflect = scattered.ray;
+                auto reflectRatio = scattered.attenuation;
+                auto refract = scattered.refractionDir;
+                auto refractRatio = scattered.refractRatio;
+                auto reflectRGB = reflectRatio == Vec3(0.f) ? RGB(0.f) :OptTrace(reflect, currDepth + 1); //如果是全透射,则没有反射光线
+                auto refractRGB = refractRatio == Vec3(0.f) ? RGB(0.f) :OptTrace(refract, currDepth + 1);  //如果是全反射,则没有折射光线
+                return reflectRGB * reflectRatio + refractRGB * refractRatio;
+            }
+            else if(spScene->materials[mtlHandle.index()].type == Material::CONDUCTOR){
+                auto reflect = scattered.ray;
+                auto reflectRatio = scattered.attenuation;
+                auto reflectRGB = reflectRatio == Vec3(0.f) ? RGB(0.f) :OptTrace(reflect, currDepth + 1); 
+                return reflectRGB * reflectRatio;
+            }
+            else if(spScene->materials[mtlHandle.index()].type == Material::PLASTIC){
+                auto reflect = scattered.ray;
+                auto reflectRatio = scattered.attenuation;
+                auto refract = scattered.refractionDir;
+                auto refractRatio = scattered.refractRatio;
+                auto reflectRGB = reflectRatio == Vec3(0.f) ? RGB(0.f) :OptTrace(reflect, currDepth + 1); //如果是全透射,则没有反射光线
+                auto refractRGB = refractRatio == Vec3(0.f) ? RGB(0.f) :OptTrace(refract, currDepth + 1);  //如果是全反射,则没有折射光线
+                return reflectRGB * reflectRatio + refractRGB * refractRatio;
+            }
+            else if(spScene->materials[mtlHandle.index()].type == Material::GLOSSY){
+                auto reflect = scattered.ray;
+                auto reflectRatio = scattered.attenuation;
+                auto reflectRGB = reflectRatio == Vec3(0.f) ? RGB(0.f) :OptTrace(reflect, currDepth + 1); 
+                return reflectRGB * reflectRatio;
+            }
+            else{
+                return Vec3(0.f);
+            }
+        }
+        // 
+        else if (t != FLOAT_INF) {  //hitObject在面光源,直接返回面光源的激发亮度
+            return emitted;
+        }
+        else {
+            return Vec3{0}; //没有hitObject,也没有面光源
+        }
+    }
 }
