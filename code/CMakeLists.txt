@@ -61,7 +61,7 @@ add_subdirectory("${DEPENDENCES_DIR}/imgui")
 # Components
 
 # Main
-add_executable(${PROJECT_NAME} main.cpp)
+add_executable(${PROJECT_NAME} main.cpp )
 target_link_libraries(${PROJECT_NAME} NRApp)
 target_include_directories(${PROJECT_NAME} PRIVATE "./app/include")
 
