@@ -9,6 +9,54 @@
 
 namespace OptimizedPathTracer
 {
+    float gaussian(float x, float sigma) {
+    return std::exp(-(x * x) / (2 * sigma * sigma));
+    }
+
+    void bilateralFilter(RGBA* pixels, int width, int height){
+        float sigmaSpatial = 2.0f;
+        float sigmaRange = 0.1f;
+        int radius = 3;
+        RGB* result = new RGB[width * height]{};
+        for (int y = 0; y < height; ++y) {
+            for (int x = 0; x < width; ++x) {
+                Vec3 sum = {0, 0, 0};
+                float weightSum = 0;
+
+                Vec3 centerColor = pixels[y * width + x];
+
+                for (int ky = -radius; ky <= radius; ++ky) {
+                    for (int kx = -radius; kx <= radius; ++kx) {
+                        int nx = x + kx;
+                        int ny = y + ky;
+
+                        if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+                            Vec3 neighborColor = pixels[ny * width + nx];
+
+                            float spatialWeight = gaussian(std::sqrt(kx * kx + ky * ky), sigmaSpatial);
+                            float rangeWeight = gaussian(std::sqrt((neighborColor - centerColor).r * (neighborColor - centerColor).r + 
+                                                                (neighborColor - centerColor).g * (neighborColor - centerColor).g + 
+                                                                (neighborColor - centerColor).b * (neighborColor - centerColor).b), sigmaRange);
+
+                            float weight = spatialWeight * rangeWeight;
+                            sum = sum + neighborColor * weight;
+                            weightSum += weight;
+                        }
+                    }
+                }
+
+                result[y * width + x] = sum * (1.0f / weightSum);
+            }
+         }
+          for (int y = 0; y < height; ++y) {
+            for (int x = 0; x < width; ++x) {
+                pixels[y * width + x] = {result[y * width + x],1};
+            }
+          }
+
+    }
+
+
     RGB OptimizedPathTracerRenderer::gamma(const RGB& rgb) {
         return glm::sqrt(rgb);
     }
@@ -31,6 +79,7 @@ namespace OptimizedPathTracer
                 pixels[(height-i-1)*width+j] = {color, 1};
             }
         }
+        //bilateralFilter(pixels, width, height);
     }
 
     auto OptimizedPathTracerRenderer::render() -> RenderResult {
