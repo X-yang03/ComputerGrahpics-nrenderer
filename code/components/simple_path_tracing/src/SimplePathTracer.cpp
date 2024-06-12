@@ -76,7 +76,7 @@ namespace SimplePathTracer
         }
         getServer().logger.log("Done...");
         int64_t totalIntersections = Intersection::getIntersectionCount();
-        cout << "Simple intersection calls: " << totalIntersections << std::endl;
+        cout << "Simple intersection calls: " << totalIntersections<<"with Sample: "<<samples<< std::endl;
         Intersection::resetIntersectionCount();
         return {pixels, width, height};
     }

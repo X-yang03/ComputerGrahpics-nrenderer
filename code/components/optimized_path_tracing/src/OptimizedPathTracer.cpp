@@ -72,7 +72,7 @@ namespace OptimizedPathTracer
                     float x = (float(j)+rx)/float(width);
                     float y = (float(i)+ry)/float(height); //随机采样的光线方向
                     auto ray = camera.shoot(x, y); //打出光线
-                    color += OptTrace(ray, 0); //路径追踪渲染
+                    color += trace(ray, 0); //路径追踪渲染
                 }
                 color /= samples; //平均
                 color = gamma(color);
@@ -97,10 +97,10 @@ namespace OptimizedPathTracer
         vertexTransformer.exec(spScene);
 
         this->bvhTree = make_shared<BVHTree>(spScene);
-        bvhTree->printTree(bvhTree->root, 0);
+        //bvhTree->printTree(bvhTree->root, 0);
 
-        int nodeNum = bvhTree->aabbs.size();
-        cout<<"nodeNum: "<<nodeNum<<endl;
+        // int nodeNum = bvhTree->aabbs.size();
+        // cout<<"nodeNum: "<<nodeNum<<endl;
 
         const auto taskNums = 16;
         thread t[taskNums];
@@ -114,7 +114,7 @@ namespace OptimizedPathTracer
         getServer().logger.log("Done...");
 
         int64_t totalIntersections = Intersection::getIntersectionCount();
-        cout << "Total intersection calls: " << totalIntersections << std::endl;
+        cout << "BVH intersection calls: " << totalIntersections <<"with Sample: "<<samples<< std::endl;
         Intersection::resetIntersectionCount();
 
 
