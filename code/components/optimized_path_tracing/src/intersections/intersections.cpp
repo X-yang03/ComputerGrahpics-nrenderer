@@ -95,29 +95,23 @@ namespace OptimizedPathTracer::Intersection
     }
 
     inline HitRecord xAABB(const Ray& ray, const SharedAABB& aabb, float tMin, float tMax){
-        
-         //intersectCnt++;
-        for (int i = 0; i < 3; i++) {  
-            //对每一对平面 ,进行求交,求出tmin和tmax, 由于每对平面都是axis-aligned
-            //所以只用考虑在这对平面法向量分量上的tmin和tmax
-            float invD = 1.0f / ray.direction[i];
-            float t_in = (aabb->_min[i] - ray.origin[i]) * invD; //分量相除 得到tmin
-            float t_out = (aabb->_max[i] - ray.origin[i]) * invD; //分量相除 得到tmax
-            if (invD < 0.0f)  std::swap(t_in, t_out);
-            tMin = t_in > tMin ? t_in : tMin; //tMin要取最大值
-            tMax = t_out < tMax ? t_out : tMax; //tMax要取最小值
-            if (tMin > tMax) return getMissRecord(); //无交点
+        //对每一对平面 ,进行求交,求出tmin和tmax, 由于每对平面都是axis-aligned
+        Vec3 t_in = (aabb->_min - ray.origin)/ray.direction;
+        Vec3 t_out = (aabb->_max - ray.origin)/ray.direction;
+        for(int i = 0; i < 3; i++){
+            if(ray.direction[i]<0) std::swap(t_in[i], t_out[i]);
         }
+        tMin = glm::max(glm::max(t_in.x, t_in.y), t_in.z); //tMin要取最大值
+        tMax = glm::min(glm::min(t_out.x, t_out.y), t_out.z); //tMax要取最小值
         if (tMin < tMax && tMax >= 0) { //与AABB相交
             return getHitRecord(tMin, ray.at(tMin), {}, {});
             }
-        //cout<<"no hit"<<endl;
         return getMissRecord();
     }
 
     //对于叶子节点，直接求与物体的交点，还是先求AABB的交点再求物体的交点， 有不同的trade-off
     HitRecord xBVH(const Ray& ray, const SharedAABB& node, float tMin, float tMax) {
-        if(node->type != AABB::Type::NOLEAF){ //非叶结点, 直接与物体求交
+        if(node->type != AABB::Type::NOLEAF){ //叶结点, 直接与物体求交
             if(node->type == AABB::Type::SPHERE) {
                     return xSphere(ray, *node->sp, tMin, tMax);
                 }
