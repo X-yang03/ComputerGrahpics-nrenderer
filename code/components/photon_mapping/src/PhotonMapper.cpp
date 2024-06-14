@@ -18,6 +18,7 @@ namespace PhotonMapper
     }
 
     void PhotonMapperRenderer::renderTask(RGBA *pixels, int width, int height, int off, int step) {
+        fprintf(stderr, "thread %d start.\n", off);
         for (int i = off; i < height; i += step) {
             for (int j = 0; j < width; j++) {
                 Vec3 color{ 0, 0, 0 };
@@ -58,7 +59,7 @@ namespace PhotonMapper
 		}
         generatePhotonMap();
 
-        const auto taskNums = 1;
+        const auto taskNums = 2;
         thread t[taskNums];
         for (int i = 0; i < taskNums; i++) {
             t[i] = thread(&PhotonMapperRenderer::renderTask,
@@ -86,12 +87,12 @@ namespace PhotonMapper
     };
 
 
-    float random_double() {
-		static RandomGenerator generator;
+    static float random_double() {
+		RandomGenerator generator;
 		return generator.generate();
 	}
 
-    bool russian_roulette(float p) {
+    static bool russian_roulette(float p) {
         return random_double() < p;
     }
 
@@ -108,8 +109,7 @@ namespace PhotonMapper
                 Vec3 ramdomDir_world = glm::normalize(Onb(areaLight.normal).local(randomDir_local));
                 Ray Ray(position, ramdomDir_world);
 
-                //Vec3 r = (areaLight.radiance * areaLight.area) / (1.0f * photonNum * PI);
-                Vec3 r = (areaLight.radiance / ((1.f / areaLight.area) * PI));
+                Vec3 r = (areaLight.radiance * areaLight.area) / (1.0f * photonNum * PI);
                 tracePhoton(Ray, r, 0);
             }
         }
@@ -121,8 +121,8 @@ namespace PhotonMapper
 
     void PhotonMapperRenderer::tracePhoton(const Ray &ray, const RGB &power, int depth)
 	{
-		/*if (depth > this->depth)
-			return;*/
+		if (depth > this->depth)
+			return;
 		auto hitObject = closestHitObject(ray);
 		if (!hitObject)
 			return;
@@ -138,7 +138,7 @@ namespace PhotonMapper
         {
             Photon photon{ hitObject->hitPoint, power, ray, scatteredRay, hitObject->normal };
             photons.push_back(photon);
-            if (russian_roulette(P_RR)/**/ && depth < this->depth)
+            if (russian_roulette(P_RR))
             {
                 auto cos_theta = abs(glm::dot(hitObject->normal, -ray.direction));
                 auto nextPower = power * attenuation * cos_theta / pdf;
@@ -227,7 +227,7 @@ namespace PhotonMapper
 
 
     RGB PhotonMapperRenderer::trace(const Ray& r, int currDepth) {
-        //if (currDepth == depth) return scene.ambient.constant; //递归数目达到depth 
+        if (currDepth == depth) return scene.ambient.constant; //递归数目达到depth 
         auto hitObject = closestHitObject(r);   //光线最近的射中物体
         auto [ t, emitted ] = closestHitLight(r);   
         // hit object
@@ -275,7 +275,7 @@ namespace PhotonMapper
             auto maxDistanceElement = 
             max_element(nearPhotons.begin(),nearPhotons.end(),
                 [&hitObject](const Photon &p1, const Photon &p2) {
-				    return glm::distance(p1.position, hitObject->hitPoint) /**/< glm::distance(p2.position, hitObject->hitPoint);
+				    return glm::distance(p1.position, hitObject->hitPoint) < glm::distance(p2.position, hitObject->hitPoint);
 			    });
 			auto maxDistance = glm::distance(maxDistanceElement->position, hitObject->hitPoint);
             /*priority_queue<Photon, vector<Photon>, ComPhoton> pq(ComPhoton(hitObject->hitPoint));
@@ -311,7 +311,7 @@ namespace PhotonMapper
                 if (cos_theta > 0)
                 {
                     averageDirect+=-photon.in_ray.direction;
-                    averageLight += photon.power / (PI * maxDistance * maxDistance * photonNum);
+                    averageLight += photon.power / (PI * maxDistance * maxDistance);
                 }
             }
             auto n_dot_in = glm::dot(hitObject->normal, glm::normalize(averageDirect));

@@ -27,8 +27,8 @@ namespace PhotonMapper
 			Node* right = nullptr;
 			Photon photon;
 			int split = -1;
-			bool leftChecked = false;
-			bool rightChecked = false;
+			//bool leftChecked = false;
+			//bool rightChecked = false;
 		};
 		Node* root = nullptr;
 	public:

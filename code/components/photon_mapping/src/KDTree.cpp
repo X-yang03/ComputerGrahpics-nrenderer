@@ -119,12 +119,12 @@ namespace PhotonMapper
 				break;
 			if (position[pSearch->split] <= pSearch->photon.position[pSearch->split])
 			{
-				pSearch->leftChecked = true;
+				//pSearch->leftChecked = true;
 				pSearch = pSearch->left;
 			}
 			else
 			{
-				pSearch->rightChecked = true;
+				//pSearch->rightChecked = true;
 				pSearch = pSearch->right;
 			}
 		}
@@ -137,11 +137,11 @@ namespace PhotonMapper
 		{
 			pBack = path.top();
 			path.pop();
-			if (pBack->leftChecked && pBack->rightChecked)
+			/*if (pBack->leftChecked && pBack->rightChecked)
 			{
 				pBack->leftChecked = pBack->rightChecked = false;
 				continue;
-			}
+			}*/
 
 			if (pBack->left == nullptr && pBack->right == nullptr)
 			{
@@ -153,7 +153,7 @@ namespace PhotonMapper
 				continue;
 			}
 
-			assert(pBack->leftChecked || pBack->rightChecked);
+			//assert(pBack->leftChecked || pBack->rightChecked);
 
 			if(fabs(pBack->photon.position[pBack->split] - position[pBack->split]) < distance)
 			{
@@ -163,7 +163,7 @@ namespace PhotonMapper
 					distance = glm::distance(pq.top().position, position);
 				}
 				//assert((pBack->leftChecked && !pBack->rightChecked) || (!pBack->leftChecked && pBack->rightChecked));
-				if (pBack->leftChecked)
+				/*if (pBack->leftChecked)
 				{
 					pBack->rightChecked = true;
 					pSearch = pBack->right;
@@ -172,7 +172,11 @@ namespace PhotonMapper
 				{
 					pBack->leftChecked = true;
 					pSearch = pBack->left;
-				}
+				}*/
+				if(position[pBack->split] <= pBack->photon.position[pBack->split])
+					pSearch = pBack->right;
+				else
+					pSearch = pBack->left;
 				if(pSearch)
 					while (pSearch)
 					{
@@ -181,21 +185,21 @@ namespace PhotonMapper
 							break;
 						if (position[pSearch->split] <= pSearch->photon.position[pSearch->split])
 						{
-							pSearch->leftChecked = true;
+							//pSearch->leftChecked = true;
 							pSearch = pSearch->left;
 						}
 						else
 						{
-							pSearch->rightChecked = true;
+							//pSearch->rightChecked = true;
 							pSearch = pSearch->right;
 						}
 					}
 			}
-			else
+			/*else
 			{
 				pBack->leftChecked = false;
 				pBack->rightChecked = false;
-			}
+			}*/
 			
 		}
 		while (!pq.empty())
