@@ -6,29 +6,32 @@
 #include "intersections/intersections.hpp"
 
 #include "glm/gtc/matrix_transform.hpp"
+#include "Onb.hpp"
+
+#include<random>
 
 namespace PhotonMapper
 {
-    RGB PhotonMapperRenderer::gamma(const RGB& rgb) {
+    RGB PhotonMapperRenderer::gamma(const RGB &rgb) {
         return glm::sqrt(rgb);
     }
 
-    void PhotonMapperRenderer::renderTask(RGBA* pixels, int width, int height, int off, int step) {
-        for(int i=off; i<height; i+=step) {
-            for (int j=0; j<width; j++) {
-                Vec3 color{0, 0, 0};
-                for (int k=0; k < samples; k++) {
+    void PhotonMapperRenderer::renderTask(RGBA *pixels, int width, int height, int off, int step) {
+        for (int i = off; i < height; i += step) {
+            for (int j = 0; j < width; j++) {
+                Vec3 color{ 0, 0, 0 };
+                for (int k = 0; k < samples; k++) {
                     auto r = defaultSamplerInstance<UniformInSquare>().sample2d();
                     float rx = r.x;
                     float ry = r.y;
-                    float x = (float(j)+rx)/float(width);
-                    float y = (float(i)+ry)/float(height); //随机采样的光线方向
+                    float x = (float(j) + rx) / float(width);
+                    float y = (float(i) + ry) / float(height); //随机采样的光线方向
                     auto ray = camera.shoot(x, y); //打出光线
                     color += trace(ray, 0); //路径追踪渲染
                 }
                 color /= samples; //平均
                 color = gamma(color);
-                pixels[(height-i-1)*width+j] = {color, 1};
+                pixels[(height - i - 1) * width + j] = { color, 1 };
             }
         }
     }
@@ -37,28 +40,131 @@ namespace PhotonMapper
         // shaders
         shaderPrograms.clear();
         ShaderCreator shaderCreator{};
-        for (auto& m : scene.materials) {
+        for (auto &m : scene.materials) {
             shaderPrograms.push_back(shaderCreator.create(m, scene.textures));
         }
 
-        RGBA* pixels = new RGBA[width*height]{};
+        RGBA *pixels = new RGBA[width * height]{};
 
         // 局部坐标转换成世界坐标
         VertexTransformer vertexTransformer{};
         vertexTransformer.exec(spScene);
+        for(auto &areaLight : scene.areaLightBuffer) {
+            areaLight.area = glm::length(glm::cross(areaLight.u, areaLight.v));
+            areaLight.normal = glm::normalize(glm::cross(areaLight.u, areaLight.v));
+		}
+        generatePhotonMap();
+
+
 
         const auto taskNums = 8;
         thread t[taskNums];
-        for (int i=0; i < taskNums; i++) {
+        for (int i = 0; i < taskNums; i++) {
             t[i] = thread(&PhotonMapperRenderer::renderTask,
                 this, pixels, width, height, i, taskNums); //多线程渲染
         }
-        for(int i=0; i < taskNums; i++) {
+        for (int i = 0; i < taskNums; i++) {
             t[i].join();
         }
         getServer().logger.log("Done...");
-        return {pixels, width, height};
+        return { pixels, width, height };
     }
+
+    class RandomGenerator {
+    public:
+        RandomGenerator()
+            : generator(std::random_device{}()), distribution(0.0f, 1.0f) {}
+
+        float generate() {
+            return distribution(generator);
+        }
+
+    private:
+        std::mt19937 generator;
+        std::uniform_real_distribution<float> distribution;
+    };
+
+
+    float random_double() {
+		static RandomGenerator generator;
+		return generator.generate();
+	}
+
+    bool russian_roulette(float p) {
+        return random_double() < p;
+    }
+
+    void PhotonMapperRenderer::generatePhotonMap()
+    {
+        for (int i = 0; i < photonNum; i++)
+        {
+            for (auto &areaLight : scene.areaLightBuffer)
+            {
+                auto r1 = random_double();
+                auto r2 = random_double();
+                Vec3 position = areaLight.position + r1 * areaLight.u + r2 * areaLight.v;
+                Vec3 randomDir_local = defaultSamplerInstance<HemiSphere>().sample3d();
+                Vec3 ramdomDir_world = glm::normalize(Onb(areaLight.normal).local(randomDir_local));
+                Ray Ray(position, ramdomDir_world);
+
+                Vec3 r = (areaLight.radiance * areaLight.area) / (PI * photonNum);
+                tracePhoton(Ray, r, 0);
+            }
+        }
+        getServer().logger.log("Photon map generated...");
+        getServer().logger.log("Photon num : "+to_string(photons.size()));
+        photonMap.build(photons);
+        getServer().logger.log("Photon map built...");
+    }
+
+    void PhotonMapperRenderer::tracePhoton(const Ray &ray, const RGB &power, int depth)
+	{
+		if (depth > this->depth)
+			return;
+		auto hitObject = closestHitObject(ray);
+		if (!hitObject)
+			return;
+		auto mtlHandle = hitObject->material;
+		auto scattered = shaderPrograms[mtlHandle.index()]->shade(ray, hitObject->hitPoint, hitObject->normal);
+		auto scatteredRay = scattered.ray;
+		auto attenuation = scattered.attenuation;
+		auto pdf = scattered.pdf;
+		auto nextRay = scatteredRay;
+        auto P_RR = 0.8f;
+        if (scene.materials[mtlHandle.index()].hasProperty("diffuseColor"))
+        {
+            Photon photon{ hitObject->hitPoint, power, ray, scatteredRay, hitObject->normal };
+            photons.push_back(photon);
+            if (russian_roulette(P_RR))
+            {
+                auto cos_theta = abs(glm::dot(hitObject->normal, scatteredRay.direction));
+                auto nextPower = power * attenuation * cos_theta / pdf;
+                tracePhoton(nextRay, nextPower, depth + 1);
+            }
+        }
+        if (scene.materials[mtlHandle.index()].hasProperty("reflect"))
+        {
+            if (russian_roulette(P_RR))
+            {
+                auto nextPower = power * attenuation / pdf;
+
+                Vec3 reflectedDir = glm::reflect(ray.direction, hitObject->normal);
+                Ray reflectedRay(hitObject->hitPoint, reflectedDir);
+                tracePhoton(reflectedRay, nextPower, depth + 1);
+            }
+        }
+        if (scene.materials[mtlHandle.index()].hasProperty("ior"))
+        {
+            if (russian_roulette(P_RR))
+            {
+                auto nextPower = power * attenuation / pdf;
+                tracePhoton(nextRay, nextPower, depth + 1);
+                nextPower = power * scattered.refractRatio / pdf;
+                nextRay = scattered.refractionDir;
+                tracePhoton(nextRay, nextPower, depth + 1);
+            }
+        }
+	}
 
     void PhotonMapperRenderer::release(const RenderResult& r) {
         auto [p, w, h] = r;

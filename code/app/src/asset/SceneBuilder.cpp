@@ -8,6 +8,7 @@ namespace NRenderer
         ro.samplesPerPixel = renderSettings.samplesPerPixel;
         ro.width = renderSettings.width;
         ro.height = renderSettings.height;
+        ro.photonNum = renderSettings.photonNum;
         this->scene->renderOption = ro;
     }
 

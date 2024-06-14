@@ -1,73 +1,78 @@
 #include "KDTree.hpp"
+#include <algorithm>
+#include <functional>
 
-KDTree::KDTree() : root(nullptr) {}
 
-KDTree::~KDTree() {
-    deleteKDTree(root);
-}
+namespace PhotonMapper
+{
+	void KDTree::build(const vector<Photon> &photons)
+	{
+		vector<Photon> copy_photons = photons;
+		_build(copy_photons.begin(), copy_photons.end(), root);
+	}
 
-void KDTree::build(const std::vector<Photon> &photons) {
-    std::vector<Photon> photonCopy = photons;
-    root = buildKDTree(photonCopy, 0);
-}
+	void KDTree::_build(vector<Photon>::iterator begin, vector<Photon>::iterator end, Node*& node)
+	{
+		if (begin == end) return;
+		node = new Node();
+		if (end - begin == 1)
+		{
+			node->photon = *begin;
+			return;
+		}
+		auto splitElement = _split(begin, end, node);
+		node->photon = *splitElement;
+		_build(begin, splitElement, node->left);
+		_build(splitElement + 1, end, node->right);
+	}
 
-std::vector<Photon> KDTree::findNearbyPhotons(const glm::vec3 &position, float radius, int maxPhotons) const {
-    std::priority_queue<std::pair<float, Photon>> pq;
-    searchKDTree(root, position, radius, maxPhotons, pq, 0);
+	vector<Photon>::iterator KDTree::_split(vector<Photon>::iterator begin, vector<Photon>::iterator end, Node*& node)
+	{
+		int split = chooseSplit(begin, end);
+		node->split = split;
+		sort(begin, end, [split](const Photon &p1, const Photon &p2) {
+			if (split == 0) return p1.position.x < p2.position.x;
+			if (split == 1) return p1.position.y < p2.position.y;
+			if (split == 2) return p1.position.z < p2.position.z;
+			});
+		return begin + (end - begin) / 2;
+	}
 
-    std::vector<Photon> result;
-    while (!pq.empty()) {
-        result.push_back(pq.top().second);
-        pq.pop();
-    }
-    return result;
-}
+	static double variance(vector<Photon>::iterator begin, vector<Photon>::iterator end, function<double(const Photon&)> f)
+	{
+		double sum = 0;
+		double sum2 = 0;
+		for (auto it = begin; it != end; it++)
+		{
+			sum += f(*it);
+			sum2 += f(*it) * f(*it);
+		}
+		double mean = sum / (end - begin);
+		double mean2 = sum2 / (end - begin);
+		return mean2 - mean * mean;
+	}
 
-KDNode *KDTree::buildKDTree(std::vector<Photon> &photons, int depth) {
-    if (photons.empty()) return nullptr;
+	int KDTree::chooseSplit(vector<Photon>::iterator begin, vector<Photon>::iterator end)
+	{
+		double variance_x = variance(begin, end, [](const Photon &p) {return p.position.x; });
+		double variance_y = variance(begin, end, [](const Photon &p) {return p.position.y; });
+		double variance_z = variance(begin, end, [](const Photon &p) {return p.position.z; });
+		double _max = max({ variance_x,variance_y,variance_z });
+		if (_max == variance_x) return 0;
+		if (_max == variance_y) return 1;
+		if (_max == variance_z) return 2;
+	}
 
-    int axis = depth % 3;
-    std::sort(photons.begin(), photons.end(), [axis](const Photon &a, const Photon &b) {
-        return a.position[axis] < b.position[axis];
-        });
+	void KDTree::_release(Node* node)
+	{
+		if (node == nullptr) return;
+		_release(node->left);
+		_release(node->right);
+		delete node;
+	}
 
-    int median = photons.size() / 2;
-    KDNode *node = new KDNode();
-    node->photon = photons[median];
-
-    std::vector<Photon> leftPhotons(photons.begin(), photons.begin() + median);
-    std::vector<Photon> rightPhotons(photons.begin() + median + 1, photons.end());
-
-    node->left = buildKDTree(leftPhotons, depth + 1);
-    node->right = buildKDTree(rightPhotons, depth + 1);
-
-    return node;
-}
-
-void KDTree::searchKDTree(KDNode *node, const glm::vec3 &position, float radius, int maxPhotons, std::priority_queue<std::pair<float, Photon>> &pq, int depth) const {
-    if (!node) return;
-
-    float dist = glm::distance(position, node->photon.position);
-    if (dist < radius) {
-        pq.push({ dist, node->photon });
-        if (pq.size() > maxPhotons) {
-            pq.pop();
-        }
-    }
-
-    int axis = depth % 3;
-    if (position[axis] - radius < node->photon.position[axis]) {
-        searchKDTree(node->left, position, radius, maxPhotons, pq, depth + 1);
-    }
-    if (position[axis] + radius > node->photon.position[axis]) {
-        searchKDTree(node->right, position, radius, maxPhotons, pq, depth + 1);
-    }
-}
-
-void KDTree::deleteKDTree(KDNode *node) {
-    if (node) {
-        deleteKDTree(node->left);
-        deleteKDTree(node->right);
-        delete node;
-    }
+	KDTree::~KDTree()
+	{
+		_release(root);
+	}
 }

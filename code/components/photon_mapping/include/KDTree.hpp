@@ -1,40 +1,44 @@
-#ifndef KDTREE_HPP
-#define KDTREE_HPP
+#ifndef __KDTREE_HPP__
+#define __KDTREE_HPP__
+#include "scene/Scene.hpp"
+#include "Ray.hpp"
 
-#include <vector>
-#include <queue>
-#include <algorithm>
-#include <functional>
-#include <glm/glm.hpp>
 
-struct Photon {
-    glm::vec3 position;
-    glm::vec3 power;
-    glm::vec3 direction;
-};
+namespace PhotonMapper
+{
+	using namespace NRenderer;
+	using namespace std;
+	struct Photon {
+		Vec3 position;
+		RGB power;
+		Ray in_ray;
+		Ray out_ray;
+		Vec3 normal;
+	};
 
-struct KDNode {
-    Photon photon;
-    KDNode *left;
-    KDNode *right;
+	class KDTree
+	{
+	private:
+		struct Node
+		{
+			Node* left = nullptr;
+			Node* right = nullptr;
+			Photon photon;
+			int split = 0;
+		};
+		Node* root = nullptr;
 
-    KDNode() : left(nullptr), right(nullptr) {}
-};
+	public:
+		KDTree() = default;
+		~KDTree();
 
-class KDTree {
-public:
-    KDTree();
-    ~KDTree();
+		void build(const std::vector<Photon>& photons);
+	private:
+		void _build(std::vector<Photon>::iterator begin, std::vector<Photon>::iterator end, Node*& node);
+		vector<Photon>::iterator _split(std::vector<Photon>::iterator begin, std::vector<Photon>::iterator end, Node*& node);
+		void _release(Node* node);
+		int chooseSplit(std::vector<Photon>::iterator begin, std::vector<Photon>::iterator end);
+	};
+}
 
-    void build(const std::vector<Photon> &photons);
-    std::vector<Photon> findNearbyPhotons(const glm::vec3 &position, float radius, int maxPhotons) const;
-
-private:
-    KDNode *buildKDTree(std::vector<Photon> &photons, int depth);
-    void searchKDTree(KDNode *node, const glm::vec3 &position, float radius, int maxPhotons, std::priority_queue<std::pair<float, Photon>> &pq, int depth) const;
-    void deleteKDTree(KDNode *node);
-
-    KDNode *root;
-};
-
-#endif // KDTREE_HPP
+#endif // __KDTREE_HPP__

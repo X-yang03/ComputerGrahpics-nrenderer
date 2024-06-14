@@ -39,6 +39,8 @@ namespace NRenderer
         Vec3 position = {};
         Vec3 u = {};
         Vec3 v = {};
+        Vec3 normal = {};
+        float area = 0.f;
     };
     SHARE(AreaLight);
 

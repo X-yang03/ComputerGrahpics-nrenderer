@@ -12,6 +12,8 @@ namespace PhotonMapper
         Vec3 attenuation = {}; //衰减
         Vec3 emitted = {};
         float pdf = {0.f};   //概率密度函数
+        Ray refractionDir = {};
+        Vec3 refractRatio = {};
     };
     
 }
