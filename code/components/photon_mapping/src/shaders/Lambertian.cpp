@@ -12,32 +12,18 @@ namespace PhotonMapper
         if (diffuseColor) albedo = (*diffuseColor).value;
         else albedo = {1, 1, 1};
     }
-    Scattered Lambertian::shade(const Ray& ray, const Vec3& hitPoint, const Vec3& normal) const {
+    Scattered Lambertian::shade(const Ray& ray, const Vec3& hitPoint, const Vec3& normal) const { 
         Vec3 origin = hitPoint;
         Vec3 random = defaultSamplerInstance<HemiSphere>().sample3d();
-        // if (normal == Vec3{0, 0, 1}) {
-        //     direction = random;
-        // }
-        // else if (normal == Vec3{0, 0, -1}) {
-        //     direction = -random;
-        // }
-        // else {
-        //     Vec3 z{0, 0, 1};
-        //     float angle = -acos(glm::dot(z, normal));
-        //     Vec3 axis =  glm::cross(normal, z);
-        //     Mat4x4 rotate = glm::rotate(Mat4x4{1}, angle, axis);
-        //     direction = rotate*Vec4{random, 1};
-        // }
-        // direction = glm::normalize(direction);
 
-        Onb onb{normal};
-        Vec3 direction = glm::normalize(onb.local(random));
+        Onb onb{normal}; //包含normal的一组正交基
+        Vec3 direction = glm::normalize(onb.local(random)); //将随机采样的方向, 与onb线性组合,转换到世界坐标系
 
         float pdf = 1/(2*PI);  //蒙特卡洛随机采样, 需要除以一个半球的面积,即2pi
 
         auto attenuation = albedo / PI; 
 
-        return {
+        return { //返回散射光线，衰减，自发光，pdf
             Ray{origin, direction},
             attenuation,
             Vec3{0},

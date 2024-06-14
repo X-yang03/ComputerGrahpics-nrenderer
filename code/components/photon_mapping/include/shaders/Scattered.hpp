@@ -6,7 +6,7 @@
 
 namespace PhotonMapper
 {
-    struct Scattered
+    struct Scattered //散射
     {
         Ray ray = {};
         Vec3 attenuation = {}; //衰减

@@ -9,6 +9,7 @@
 
 #include "shaders/ShaderCreator.hpp"
 #include "KDTree.hpp"
+#include "BVH.hpp"
 
 #include <tuple>
 namespace PhotonMapper
@@ -35,6 +36,7 @@ namespace PhotonMapper
         vector<SharedShader> shaderPrograms;
         vector<Photon> photons;
         KDTree photonMap;
+        SharedBVHTree bvhTree = nullptr;
     public:
         PhotonMapperRenderer(SharedScene spScene)
             : spScene               (spScene)
@@ -69,6 +71,9 @@ namespace PhotonMapper
         tuple<float, Vec3> closestHitLight(const Ray& r);
         void generatePhotonMap();
         void tracePhoton(const Ray& ray, const RGB& power, int depth);
+
+        RGB OptTrace(const Ray &ray, int currDepth);
+        tuple<Vec3, Vec3> sampleOnlight(const AreaLight &light);
     };
 }
 
