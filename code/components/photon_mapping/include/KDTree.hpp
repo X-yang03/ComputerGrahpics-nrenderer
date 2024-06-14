@@ -14,6 +14,9 @@ namespace PhotonMapper
 		Ray in_ray;
 		Ray out_ray;
 		Vec3 normal;
+		Photon(Vec3 position) : position(position) {}
+		Photon() = default;
+		Photon(Vec3 position, RGB power, Ray in_ray, Ray out_ray, Vec3 normal) : position(position), power(power), in_ray(in_ray), out_ray(out_ray), normal(normal) {}
 	};
 	class KDTree
 	{
@@ -23,7 +26,9 @@ namespace PhotonMapper
 			Node* left = nullptr;
 			Node* right = nullptr;
 			Photon photon;
-			int split = 0;
+			int split = -1;
+			bool leftChecked = false;
+			bool rightChecked = false;
 		};
 		Node* root = nullptr;
 	public:

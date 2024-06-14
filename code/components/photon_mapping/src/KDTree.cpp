@@ -1,4 +1,5 @@
 #include "KDTree.hpp"
+#include "server/Server.hpp"
 #include <algorithm>
 #include <functional>
 #include <queue>
@@ -101,19 +102,31 @@ namespace PhotonMapper
 
 	vector<Photon> KDTree::nearestPhotons(const Vec3 &position, const int num) const
 	{
+		//fprintf(stderr, "nearestPhotons\n");
 		vector<Photon> result;
 		stack<Node *> path;
 		double distance = 0;
 		auto pq = std::priority_queue<Photon, vector<Photon>, ComparePhoton>(ComparePhoton(position));
 
+		for (int i = 0; i < num; i++)
+			pq.push(Photon(Vec3{ 21132.83,21132.83,21132.83 }));
+
 		Node *pSearch = root, *pBack = nullptr;
 		while (pSearch)
 		{
 			path.push(pSearch);
+			if (pSearch->left == nullptr && pSearch->right == nullptr)
+				break;
 			if (position[pSearch->split] <= pSearch->photon.position[pSearch->split])
+			{
+				pSearch->leftChecked = true;
 				pSearch = pSearch->left;
+			}
 			else
+			{
+				pSearch->rightChecked = true;
 				pSearch = pSearch->right;
+			}
 		}
 
 		_pq_push(pq, path.top()->photon, num);
@@ -124,6 +137,11 @@ namespace PhotonMapper
 		{
 			pBack = path.top();
 			path.pop();
+			if (pBack->leftChecked && pBack->rightChecked)
+			{
+				pBack->leftChecked = pBack->rightChecked = false;
+				continue;
+			}
 
 			if (pBack->left == nullptr && pBack->right == nullptr)
 			{
@@ -134,6 +152,9 @@ namespace PhotonMapper
 				}
 				continue;
 			}
+
+			assert(pBack->leftChecked || pBack->rightChecked);
+
 			if(fabs(pBack->photon.position[pBack->split] - position[pBack->split]) < distance)
 			{
 				if (glm::distance(pBack->photon.position, position) < distance)
@@ -141,13 +162,41 @@ namespace PhotonMapper
 					_pq_push(pq, pBack->photon, num);
 					distance = glm::distance(pq.top().position, position);
 				}
-				if (position[pBack->split] <= pBack->photon.position[pBack->split])
+				//assert((pBack->leftChecked && !pBack->rightChecked) || (!pBack->leftChecked && pBack->rightChecked));
+				if (pBack->leftChecked)
+				{
+					pBack->rightChecked = true;
 					pSearch = pBack->right;
+				}
 				else
+				{
+					pBack->leftChecked = true;
 					pSearch = pBack->left;
+				}
 				if(pSearch)
-					path.push(pSearch);
+					while (pSearch)
+					{
+						path.push(pSearch);
+						if (pSearch->left == nullptr && pSearch->right == nullptr)
+							break;
+						if (position[pSearch->split] <= pSearch->photon.position[pSearch->split])
+						{
+							pSearch->leftChecked = true;
+							pSearch = pSearch->left;
+						}
+						else
+						{
+							pSearch->rightChecked = true;
+							pSearch = pSearch->right;
+						}
+					}
 			}
+			else
+			{
+				pBack->leftChecked = false;
+				pBack->rightChecked = false;
+			}
+			
 		}
 		while (!pq.empty())
 		{
