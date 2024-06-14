@@ -3,6 +3,7 @@
 namespace SimplePathTracer::Intersection
 {
     HitRecord xTriangle(const Ray& ray, const Triangle& t, float tMin, float tMax) {
+         intersectCnt++;
         const auto& v1 = t.v1;
         const auto& v2 = t.v2;
         const auto& v3 = t.v3;
@@ -29,6 +30,7 @@ namespace SimplePathTracer::Intersection
 
     }
     HitRecord xSphere(const Ray& ray, const Sphere& s, float tMin, float tMax) {
+         intersectCnt++;
         const auto& position = s.position;
         const auto& r = s.radius;
         Vec3 oc = ray.origin - position;
@@ -54,6 +56,7 @@ namespace SimplePathTracer::Intersection
         return getMissRecord();
     }
     HitRecord xPlane(const Ray& ray, const Plane& p, float tMin, float tMax) {
+         intersectCnt++;
         auto Np_dot_d = glm::dot(ray.direction, p.normal);
         if (Np_dot_d < 0.0000001f && Np_dot_d > -0.00000001f) return getMissRecord();
         float dp = -glm::dot(p.position, p.normal);
@@ -89,5 +92,12 @@ namespace SimplePathTracer::Intersection
             return getHitRecord(t, hitPoint, normal, {});
         }
         return getMissRecord();
+    }
+    int64_t getIntersectionCount() {
+            return intersectCnt.load(); // 读取原子计数器的值
+        }
+
+    void resetIntersectionCount() {
+        intersectCnt.store(0); // 将计数器重置为0
     }
 }

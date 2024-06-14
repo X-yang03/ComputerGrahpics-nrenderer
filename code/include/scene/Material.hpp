@@ -18,9 +18,9 @@ namespace NRenderer
 {
     using namespace std;
 
-    struct Property
+    struct Property //材质属性
     {
-        class Wrapper
+        class Wrapper //属性包装器
         {
         private:
             template<typename T>
@@ -45,7 +45,7 @@ namespace NRenderer
             TEXTURE_ID
         };
     #define Types Wrapper::IntType, Wrapper::FloatType, Wrapper::RGBType, Wrapper::RGBAType, Wrapper::Vec3Type, Wrapper::Vec4Type, Wrapper::TextureIdType
-        using ValueType = variant<Types>;
+        using ValueType = variant<Types>; //可以表示多种不同的类型
     #undef Types
         string key;
         Type type;
@@ -94,10 +94,19 @@ namespace NRenderer
         Material() = default;
 
     public:
+        enum 
+        {
+            LAMBERTIAN = 0x0,
+            PHONG,
+            DIELECTRIC,
+            CONDUCTOR,
+            PLASTIC,
+            GLOSSY
+        };
         
         unsigned int type = 0;
 
-        vector<Property> properties;
+        vector<Property> properties; //材质属性
 
         inline
         bool hasProperty(const string& key) {

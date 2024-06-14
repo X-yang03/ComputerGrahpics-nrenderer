@@ -51,6 +51,7 @@ namespace OptimizedPathTracer
                         fmax(left->_max.z, right->_max.z));
             this->left = left;
             this->right = right;
+            this->type = Type::NOLEAF;
         }
 
         AABB(Sphere* sp){
@@ -74,6 +75,12 @@ namespace OptimizedPathTracer
             _max = Vec3(fmax(v1.x, fmax(v2.x, v3.x)),
                         fmax(v1.y, fmax(v2.y, v3.y)),
                         fmax(v1.z, fmax(v2.z, v3.z)));
+            if(_min.x == _max.x)
+                _max.x += 0.1f;
+            else if(_min.y == _max.y)
+                _max.y += 0.1f;
+            else if(_min.z == _max.z)
+                _max.z += 0.1f;  //如果是平面的话,加上一个微小的偏移，形成包围盒
         }   
 
         AABB(Plane* pl){   //Todo: could be optimized later
@@ -81,13 +88,10 @@ namespace OptimizedPathTracer
             this->pl = pl;
             Vec3 n = pl->normal;
             Vec3 p = pl->position;
-            Vec3 u = pl->u;
-            Vec3 v = pl->v;
-
             float epsilon = 0.1f;
-            Vec3 p2 = p + u;
-            Vec3 p3 = p + v;    
-            Vec3 p4 = p + u + v;
+            Vec3 p2 = p + pl->u;
+            Vec3 p3 = p + pl->v;    
+            Vec3 p4 = p + pl->u + pl->v;
 
             p -= epsilon * n;
             p2 -= epsilon * n;
@@ -103,18 +107,39 @@ namespace OptimizedPathTracer
                         fmax(p.z, fmax(p2.z, fmax(p3.z, p4.z))));
         }
 
+        AABB(Mesh* ms, int index){   //mesh相当于带有material的triangle
+            type = Type::MESH;
+            Vec3 min = Vec3(FLT_MAX, FLT_MAX, FLT_MAX);
+            Vec3 max = Vec3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+            Vec3 v1 = ms->positions[ms->positionIndices[index]];
+            Vec3 v2 = ms->positions[ms->positionIndices[index + 1]];
+            Vec3 v3 = ms->positions[ms->positionIndices[index + 2]];   //该mesh的三个顶点
+
+            this->ms = new Triangle();
+            this->ms->v1 = v1;
+            this->ms->v2 = v2;
+            this->ms->v3 = v3;  //保存为三角形
+            this->ms->material = ms->material;
+            this->ms->normal = glm::normalize(glm::cross(v2 - v1, v3 - v1));
+            min = Vec3(fmin(v1.x, fmin(v2.x, v3.x)),
+                        fmin(v1.y, fmin(v2.y, v3.y)),
+                        fmin(v1.z, fmin(v2.z, v3.z)));
+            max = Vec3(fmax(v1.x, fmax(v2.x, v3.x)),
+                        fmax(v1.y, fmax(v2.y, v3.y)),
+                        fmax(v1.z, fmax(v2.z, v3.z)));
+
+            _min = min;
+            _max = max;
+            if(_min.x == _max.x)
+                _max.x += 0.1f;
+            else if(_min.y == _max.y)
+                _max.y += 0.1f;
+            else if(_min.z == _max.z)
+                _max.z += 0.1f;  //如果是平面的话,加上一个微小的偏移，形成包围盒
+        }
+
 
     };
-
-    // AABB mother_box(const AABB& a, const AABB& b){
-    //     Vec3 _min(fmin(a._min.x, b._min.x),
-    //                fmin(a._min.y, b._min.y),
-    //                fmin(a._min.z, b._min.z));
-    //     Vec3 _max(fmax(a._max.x, b._max.x),
-    //              fmax(a._max.y, b._max.y),
-    //              fmax(a._max.z, b._max.z));
-    //     return AABB(_min, _max);
-    // }
     SHARE(AABB);
 }
 

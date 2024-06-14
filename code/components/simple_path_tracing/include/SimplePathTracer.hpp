@@ -6,7 +6,6 @@
 #include "Ray.hpp"
 #include "Camera.hpp"
 #include "intersections/HitRecord.hpp"
-
 #include "shaders/ShaderCreator.hpp"
 
 #include <tuple>
@@ -55,6 +54,8 @@ namespace SimplePathTracer
         RGB trace(const Ray& ray, int currDepth);
         HitRecord closestHitObject(const Ray& r);
         tuple<float, Vec3> closestHitLight(const Ray& r);
+
+        void handleMesh();
     };
 }
 

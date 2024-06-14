@@ -19,25 +19,13 @@ namespace OptimizedPathTracer
     using namespace NRenderer;
     using namespace std;
 
-    // struct BVHNode{
-    //     AABB box;
-    //     BVHNode* left;
-    //     BVHNode* right;
-    //     bool isLeaf;
-    //     int start;
-    //     int end;
-    //     BVHNode(const AABB& box, BVHNode* left, BVHNode* right, bool isLeaf, int start, int end)
-    //         : box(box), left(left), right(right), isLeaf(isLeaf), start(start), end(end)
-    //     {}
-    // };
-
     class BVHTree{
 
     public:
         vector<SharedAABB> aabbs;  
         SharedAABB root;
         SharedScene spscene;
-        
+
         SharedAABB build_BVH(vector<SharedAABB>& aabbs, int start, int end){ //[start, end)
             if(start == end || start == end - 1){   //leaf node,仅有一个Entity
                 return aabbs[start];
@@ -78,7 +66,6 @@ namespace OptimizedPathTracer
 
         BVHTree(SharedScene spscene){
             this->spscene = spscene;
-
             for(auto& node: spscene->nodes){
                 if(node.type == Node::Type::SPHERE){
                      aabbs.push_back(make_shared<AABB>(&(spscene->sphereBuffer[node.entity])));
@@ -89,15 +76,28 @@ namespace OptimizedPathTracer
                 else if(node.type == Node::Type::PLANE){
                     aabbs.push_back(make_shared<AABB>(&(spscene->planeBuffer[node.entity])));
                 }
-                // else if(node.type == Node::Type::MESH){
-                //     aabbs.push_back(make_shared<AABB>(spscene->meshBuffer[node.entity]));
-                // }
+                else if(node.type == Node::Type::MESH){
+                    Mesh mesh = spscene->meshBuffer[node.entity];
+                    for(int i = 0; i < mesh.positionIndices.size(); i += 3){  //每三个为一个三角形
+                        aabbs.push_back(make_shared<AABB>(&mesh, i));
+                    }
+                }
                 else{
                     throw runtime_error("Unknown Node Type");
                 }
             }
             root = build_BVH(aabbs, 0, aabbs.size());
         }     
+
+        void printTree(SharedAABB node, int depth){
+            if(node == nullptr) return;
+            for(int i = 0; i < depth; i++){
+                cout << "  ";
+            }
+            cout << "min: " << node->_min.x << " " << node->_min.y << " " << node->_min.z << " max: " << node->_max.x << " " << node->_max.y << " " << node->_max.z << endl;
+            printTree(node->left, depth + 1);
+            printTree(node->right, depth + 1);
+        }
 
     };
     SHARE(BVHTree);

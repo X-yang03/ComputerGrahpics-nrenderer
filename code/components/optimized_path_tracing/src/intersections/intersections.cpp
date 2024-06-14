@@ -1,7 +1,9 @@
 #include "intersections/intersections.hpp"
+#include "server/Server.hpp"
 namespace OptimizedPathTracer::Intersection
 {
     HitRecord xTriangle(const Ray& ray, const Triangle& t, float tMin, float tMax) {
+        intersectCnt++;
         const auto& v1 = t.v1;
         const auto& v2 = t.v2;
         const auto& v3 = t.v3;
@@ -28,6 +30,7 @@ namespace OptimizedPathTracer::Intersection
 
     }
     HitRecord xSphere(const Ray& ray, const Sphere& s, float tMin, float tMax) {
+         intersectCnt++;
         const auto& position = s.position;
         const auto& r = s.radius;
         Vec3 oc = ray.origin - position;
@@ -53,6 +56,7 @@ namespace OptimizedPathTracer::Intersection
         return getMissRecord();
     }
     HitRecord xPlane(const Ray& ray, const Plane& p, float tMin, float tMax) {
+         intersectCnt++;
         auto Np_dot_d = glm::dot(ray.direction, p.normal);
         if (Np_dot_d < 0.0000001f && Np_dot_d > -0.00000001f) return getMissRecord();
         float dp = -glm::dot(p.position, p.normal);
@@ -71,69 +75,92 @@ namespace OptimizedPathTracer::Intersection
         return getMissRecord();
     }
     HitRecord xAreaLight(const Ray& ray, const AreaLight& a, float tMin, float tMax) {
-        Vec3 normal = glm::cross(a.u, a.v);
+        Vec3 normal = glm::cross(a.u, a.v);  //光源法向量
         Vec3 position = a.position;
         auto Np_dot_d = glm::dot(ray.direction, normal);
-        if (Np_dot_d < 0.0000001f && Np_dot_d > -0.00000001f) return getMissRecord();
+        if (Np_dot_d < 0.0000001f && Np_dot_d > -0.00000001f) return getMissRecord(); //ray与光源法向量垂直,无交点
         float dp = -glm::dot(position, normal);
-        float t = (-dp - glm::dot(normal, ray.origin))/Np_dot_d;
-        if (t >= tMax || t < tMin) return getMissRecord();
+        float t = (-dp - glm::dot(normal, ray.origin))/Np_dot_d; //计算光线与区域光源的交点在光线上的参数t
+        if (t >= tMax || t < tMin) return getMissRecord(); 
         // cross test
-        Vec3 hitPoint = ray.at(t);
+        Vec3 hitPoint = ray.at(t); //计算交点位置
         Mat3x3 d{a.u, a.v, glm::cross(a.u, a.v)};
         d = glm::inverse(d);
-        auto res  = d * (hitPoint - position);
+        auto res  = d * (hitPoint - position);  //将交点的位置转换到区域光源的局部坐标系
         auto u = res.x, v = res.y;
-        if ((u<=1 && u>=0) && (v<=1 && v>=0)) {
+        if ((u<=1 && u>=0) && (v<=1 && v>=0)) { //局部坐标在[0, 1]范围内，说明交点在区域光源的范围内
             return getHitRecord(t, hitPoint, normal, {});
         }
         return getMissRecord();
     }
 
-    HitRecord xAABB(const Ray& ray, const SharedAABB& aabb, float tMin, float tMax){
-        for (int i = 0; i < 3; i++) {  
-            //对每一对平面 ,进行求交,求出tmin和tmax, 由于每对平面都是axis-aligned
-            //所以只用考虑在这对平面法向量分量上的tmin和tmax
-            float invD = 1.0f / ray.direction[i];
-            float t_in = (aabb->_min[i] - ray.origin[i]) * invD; //分量相除 得到tmin
-            float t_out = (aabb->_max[i] - ray.origin[i]) * invD; //分量相除 得到tmax
-            if (invD < 0.0f)  std::swap(t_in, t_out);
-            tMin = t_in > tMin ? t_in : tMin; //tMin要取最大值
-            tMax = t_out < tMax ? t_out : tMax; //tMax要取最小值
+    inline HitRecord xAABB(const Ray& ray, const SharedAABB& aabb, float tMin, float tMax){
+        //对每一对平面 ,进行求交,求出tmin和tmax, 由于每对平面都是axis-aligned
+        Vec3 t_in = (aabb->_min - ray.origin)/ray.direction;
+        Vec3 t_out = (aabb->_max - ray.origin)/ray.direction;
+        for(int i = 0; i < 3; i++){
+            if(ray.direction[i]<0) std::swap(t_in[i], t_out[i]);
         }
+        tMin = glm::max(glm::max(t_in.x, t_in.y), t_in.z); //tMin要取最大值
+        tMax = glm::min(glm::min(t_out.x, t_out.y), t_out.z); //tMax要取最小值
         if (tMin < tMax && tMax >= 0) { //与AABB相交
-            if(aabb->type == AABB::Type::SPHERE) {
-                return xSphere(ray, *aabb->sp, tMin, tMax);
-            }
-            else if(aabb->type == AABB::Type::TRIANGLE) {
-                return xTriangle(ray, *aabb->tr, tMin, tMax);
-            }
-            else if(aabb->type == AABB::Type::PLANE) {
-                return xPlane(ray, *aabb->pl, tMin, tMax);
-            }
             return getHitRecord(tMin, ray.at(tMin), {}, {});
             }
         return getMissRecord();
     }
 
+    //对于叶子节点，直接求与物体的交点，还是先求AABB的交点再求物体的交点， 有不同的trade-off
     HitRecord xBVH(const Ray& ray, const SharedAABB& node, float tMin, float tMax) {
-
-        auto hitRecord = xAABB(ray, node, tMin, tMax);
-        if (! (hitRecord && hitRecord->t < tMax) ) {
+        if(node->type != AABB::Type::NOLEAF){ //叶结点, 直接与物体求交
+            if(node->type == AABB::Type::SPHERE) {
+                    return xSphere(ray, *node->sp, tMin, tMax);
+                }
+                else if(node->type == AABB::Type::TRIANGLE) {
+                    return xTriangle(ray, *node->tr, tMin, tMax);
+                }
+                else if(node->type == AABB::Type::PLANE) {
+                    return xPlane(ray, *node->pl, tMin, tMax);
+                }
+                else if(node->type == AABB::Type::MESH){
+                    return xTriangle(ray, *node->ms, tMin, tMax);
+                }
+        }
+        auto hitRecord = xAABB(ray, node, tMin, tMax);  //当前AABB有无交点
+        if (hitRecord == nullopt) {
             return getMissRecord();     
         }
-        if (node->left && node->right) { // internal node
+        //if (node->type == AABB::Type::NOLEAF) { // internal node
             auto left = xBVH(ray, node->left, tMin, tMax);
             auto right = xBVH(ray, node->right, tMin, tMax);
-            if ((left && left->t <tMax) && (right && right->t < tMax)) {
+            if ((left != nullopt) && (right != nullopt)) {
                 return left->t < right->t ? left : right;
             }
-            else if (left && left->t <tMax) return left;
-            else if (right && right->t < tMax) return right;
+            else if (left != nullopt) return left;
+            else if (right != nullopt) return right;
             return getMissRecord();
-        }
-        else { // leaf node
-            return xAABB(ray, node, tMin, tMax);
-        }
+        //}
+        // else { // leaf node
+        //         if(node->type == AABB::Type::SPHERE) {
+        //             return xSphere(ray, *node->sp, tMin, tMax);
+        //         }
+        //         else if(node->type == AABB::Type::TRIANGLE) {
+        //             return xTriangle(ray, *node->tr, tMin, tMax);
+        //         }
+        //         else if(node->type == AABB::Type::PLANE) {
+        //             return xPlane(ray, *node->pl, tMin, tMax);
+        //         }
+        //         else if(node->type == AABB::Type::MESH){
+        //             return xTriangle(ray, *node->ms, tMin, tMax);
+        //         }
+        //         return getHitRecord(tMin, ray.at(tMin), {}, {});
+        //     }
     }   
+
+    int64_t getIntersectionCount() {
+            return intersectCnt.load(); // 读取原子计数器的值
+        }
+
+    void resetIntersectionCount() {
+        intersectCnt.store(0); // 将计数器重置为0
+    }
 }
