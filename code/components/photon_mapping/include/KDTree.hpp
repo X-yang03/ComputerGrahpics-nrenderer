@@ -15,7 +15,6 @@ namespace PhotonMapper
 		Ray out_ray;
 		Vec3 normal;
 	};
-
 	class KDTree
 	{
 	private:
@@ -27,12 +26,12 @@ namespace PhotonMapper
 			int split = 0;
 		};
 		Node* root = nullptr;
-
 	public:
 		KDTree() = default;
 		~KDTree();
 
 		void build(const std::vector<Photon>& photons);
+		vector<Photon> nearestPhotons(const Vec3 &position, const int num) const;
 	private:
 		void _build(std::vector<Photon>::iterator begin, std::vector<Photon>::iterator end, Node*& node);
 		vector<Photon>::iterator _split(std::vector<Photon>::iterator begin, std::vector<Photon>::iterator end, Node*& node);

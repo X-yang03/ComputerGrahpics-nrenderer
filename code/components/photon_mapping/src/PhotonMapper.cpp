@@ -213,7 +213,7 @@ namespace PhotonMapper
     }
 
     RGB PhotonMapperRenderer::trace(const Ray& r, int currDepth) {
-        if (currDepth == depth) return scene.ambient.constant; //递归数目达到depth
+        if (currDepth == depth) return scene.ambient.constant; //递归数目达到depth 
         auto hitObject = closestHitObject(r);   //光线最近的射中物体
         auto [ t, emitted ] = closestHitLight(r);   
         // hit object
@@ -223,9 +223,59 @@ namespace PhotonMapper
             auto scatteredRay = scattered.ray;
             auto attenuation = scattered.attenuation;
             auto emitted = scattered.emitted;
-            auto next = trace(scatteredRay, currDepth+1);
-            float n_dot_in = glm::dot(hitObject->normal, scatteredRay.direction);
-            float pdf = scattered.pdf;
+            auto pdf = scattered.pdf;
+            auto P_RR = 0.8f;
+
+            if (scene.materials[mtlHandle.index()].hasProperty("reflect"))
+            {
+                RGB nextReflect;
+                if (russian_roulette(P_RR))
+                {
+                    auto reflectedDir = glm::reflect(r.direction, hitObject->normal);
+                    Ray reflectedRay(hitObject->hitPoint, reflectedDir);
+                    nextReflect = trace(reflectedRay, currDepth + 1);
+                }
+                else
+                {
+                    nextReflect= scene.ambient.constant;
+                }
+                return emitted + attenuation * nextReflect / pdf;
+            }
+            if(scene.materials[mtlHandle.index()].hasProperty("ior"))
+			{
+                RGB nextReflect, nextRefract;
+                if (russian_roulette(P_RR))
+                {
+                    nextReflect = trace(scatteredRay, currDepth + 1);
+                    nextRefract = trace(scattered.refractionDir, currDepth + 1);
+                }
+                else
+                {
+                    nextReflect = nextRefract = scene.ambient.constant;
+                }
+                return emitted + (attenuation * nextReflect + scattered.refractRatio * nextRefract) / pdf;
+			}
+
+            auto nearPhotons = photonMap.nearestPhotons(hitObject->hitPoint, samplePhotonNum);
+            auto maxDistanceElement = 
+            max_element(nearPhotons.begin(),nearPhotons.end(),
+                [&hitObject](const Photon &p1, const Photon &p2) {
+				    return glm::distance(p1.position, hitObject->hitPoint) < glm::distance(p2.position, hitObject->hitPoint);
+			    });
+			auto maxDistance = glm::distance(maxDistanceElement->position, hitObject->hitPoint);
+            Vec3 averageDirect = {};
+            RGB averageLight = {};
+            for (auto &photon : nearPhotons)
+            {
+                auto cos_theta = glm::dot(hitObject->normal, -photon.in_ray.direction);
+                if (cos_theta > 0)
+                {
+                    averageDirect+=-photon.in_ray.direction;
+                    averageLight += photon.power / (PI * maxDistance * maxDistance);
+                }
+            }
+            auto n_dot_in = glm::dot(hitObject->normal, glm::normalize(averageDirect));
+            return emitted + attenuation * averageLight * n_dot_in / pdf;
             /**
              * emitted      - Le(p, w_0)
              * next         - Li(p, w_i)
@@ -233,9 +283,8 @@ namespace PhotonMapper
              * atteunation  - BRDF
              * pdf          - p(w)
              **/
-            return emitted + attenuation * next * n_dot_in / pdf; //自发光emitted, 加上来自外部的光线的亮度
+            //return emitted + attenuation * next * n_dot_in / pdf; //自发光emitted, 加上来自外部的光线的亮度
         }
-        // 
         else if (t != FLOAT_INF) {  //hitObject在面光源之后,直接返回面光源的激发亮度
             return emitted;
         }

@@ -17,12 +17,14 @@ namespace NRenderer
         unsigned int depth;
         unsigned int samplesPerPixel;
         unsigned int photonNum;
+        unsigned int samplePhotonNum;
         RenderOption()
             : width             (500)
             , height            (500)
             , depth             (40)
             , samplesPerPixel   (16)
             , photonNum         (100000)
+            , samplePhotonNum   (50)
         {}
     };
 

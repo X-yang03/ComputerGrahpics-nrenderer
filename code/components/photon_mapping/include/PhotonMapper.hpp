@@ -27,6 +27,7 @@ namespace PhotonMapper
         unsigned int depth;     //最大的trace递归数目
         unsigned int samples; //采样的光线数
         unsigned int photonNum; //光子数目
+        unsigned int samplePhotonNum;
 
         using SCam = PhotonMapper::Camera;
         SCam camera;
@@ -45,11 +46,13 @@ namespace PhotonMapper
             depth = scene.renderOption.depth;
             samples = scene.renderOption.samplesPerPixel;
             photonNum = scene.renderOption.photonNum;
-            getServer().logger.log("width: " + to_string(width));
+            samplePhotonNum = scene.renderOption.samplePhotonNum;
+            /*getServer().logger.log("width: " + to_string(width));
             getServer().logger.log("height: " + to_string(height));
             getServer().logger.log("depth: " + to_string(depth));
             getServer().logger.log("samples: " + to_string(samples));
             getServer().logger.log("photonNum: " + to_string(photonNum));
+            getServer().logger.log("samplePhotonNum: " + to_string(samplePhotonNum));*/
         }
         ~PhotonMapperRenderer() = default;
 

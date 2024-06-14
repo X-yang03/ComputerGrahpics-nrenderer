@@ -1,6 +1,8 @@
 #include "KDTree.hpp"
 #include <algorithm>
 #include <functional>
+#include <queue>
+#include <stack>
 
 
 namespace PhotonMapper
@@ -59,8 +61,8 @@ namespace PhotonMapper
 		double variance_z = variance(begin, end, [](const Photon &p) {return p.position.z; });
 		double _max = max({ variance_x,variance_y,variance_z });
 		if (_max == variance_x) return 0;
-		if (_max == variance_y) return 1;
-		if (_max == variance_z) return 2;
+		else if (_max == variance_y) return 1;
+		return 2;
 	}
 
 	void KDTree::_release(Node* node)
@@ -75,4 +77,84 @@ namespace PhotonMapper
 	{
 		_release(root);
 	}
+
+	class ComparePhoton {
+	private:
+		Vec3 position;
+	public:
+		ComparePhoton(const Vec3 &position) : position(position) {}
+		bool operator()(const Photon &p1, const Photon &p2) {
+			return glm::distance(p1.position, position) < glm::distance(p2.position, position);
+		}
+	};
+
+	static void _pq_push(priority_queue<Photon, vector<Photon>, ComparePhoton> &pq, const Photon &photon, int num)
+	{
+		if (pq.size() < num)
+		{
+			pq.push(photon);
+			return;
+		}
+		pq.pop();
+		pq.push(photon);
+	}
+
+	vector<Photon> KDTree::nearestPhotons(const Vec3 &position, const int num) const
+	{
+		vector<Photon> result;
+		stack<Node *> path;
+		double distance = 0;
+		auto pq = std::priority_queue<Photon, vector<Photon>, ComparePhoton>(ComparePhoton(position));
+
+		Node *pSearch = root, *pBack = nullptr;
+		while (pSearch)
+		{
+			path.push(pSearch);
+			if (position[pSearch->split] <= pSearch->photon.position[pSearch->split])
+				pSearch = pSearch->left;
+			else
+				pSearch = pSearch->right;
+		}
+
+		_pq_push(pq, path.top()->photon, num);
+		path.pop();
+		distance = glm::distance(pq.top().position, position);
+		
+		while (!path.empty())
+		{
+			pBack = path.top();
+			path.pop();
+
+			if (pBack->left == nullptr && pBack->right == nullptr)
+			{
+				if (glm::distance(pBack->photon.position, position) < distance)
+				{
+					_pq_push(pq, pBack->photon, num);
+					distance = glm::distance(pq.top().position, position);
+				}
+				continue;
+			}
+			if(fabs(pBack->photon.position[pBack->split] - position[pBack->split]) < distance)
+			{
+				if (glm::distance(pBack->photon.position, position) < distance)
+				{
+					_pq_push(pq, pBack->photon, num);
+					distance = glm::distance(pq.top().position, position);
+				}
+				if (position[pBack->split] <= pBack->photon.position[pBack->split])
+					pSearch = pBack->right;
+				else
+					pSearch = pBack->left;
+				if(pSearch)
+					path.push(pSearch);
+			}
+		}
+		while (!pq.empty())
+		{
+			result.push_back(pq.top());
+			pq.pop();
+		}
+		return result;
+	}
+
 }

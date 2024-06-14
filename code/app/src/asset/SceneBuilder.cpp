@@ -9,6 +9,7 @@ namespace NRenderer
         ro.width = renderSettings.width;
         ro.height = renderSettings.height;
         ro.photonNum = renderSettings.photonNum;
+        ro.samplePhotonNum = renderSettings.samplePhotonNum;
         this->scene->renderOption = ro;
     }
 

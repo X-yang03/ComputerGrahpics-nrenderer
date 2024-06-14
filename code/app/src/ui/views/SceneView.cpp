@@ -42,6 +42,7 @@ namespace NRenderer
         ImGui::InputScalar("Depth", ImGuiDataType_U32, &rs.depth, &intStep, NULL, "%u");
         ImGui::InputScalar("Sample Nums", ImGuiDataType_U32, &rs.samplesPerPixel, &intStep, NULL, "%u");
         ImGui::InputScalar("photon Num", ImGuiDataType_U32, &rs.photonNum, &intStep, NULL, "%u");
+        ImGui::InputScalar("Sample Photon Num", ImGuiDataType_U32, &rs.samplePhotonNum, &intStep, NULL, "%u");
     }
     void SceneView::ambientSetting() {
         auto& as = manager.renderSettingsManager.ambientSettings;

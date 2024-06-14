@@ -13,12 +13,15 @@ namespace NRenderer
         unsigned int depth;
         unsigned int samplesPerPixel;
         unsigned int photonNum;
+        unsigned int samplePhotonNum;
+
         RenderSettings()
             : width             (500)
             , height            (500)
             , depth             (4)
             , samplesPerPixel   (16)
             , photonNum         (100000)
+            , samplePhotonNum   (50)
         {}
     };
     struct AmbientSettings
