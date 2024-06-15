@@ -2,59 +2,86 @@ Begin Material
 
 Material Mirror 3
 
-Prop reflect RGB  1 1 1
+Prop absorbed RGB  1 1 1
+Prop eta Float  1.5
+Prop k Float  4
 
 Material Titanium 3
 
-Prop reflect RGB  0.542 0.497 0.449
+Prop absorbed RGB  0.542 0.497 0.449
+Prop eta Float  2.69
+Prop k Float  3.32
 
 Material Chromium 3
 
-Prop reflect RGB  0.549 0.556 0.554
+Prop absorbed RGB  0.549 0.556 0.554
+Prop eta Float  3.00
+Prop k Float  3.27
 
 Material Iron 3
 
-Prop reflect RGB  0.562 0.565 0.578
+Prop absorbed RGB  0.562 0.565 0.578
+Prop eta Float  2.91
+Prop k Float  3.14
 
 Material Nickel 3
 
-Prop reflect RGB  0.660 0.609 0.526
+Prop absorbed RGB  0.660 0.609 0.526
+Prop eta Float  2.85
+Prop k Float  3.55
 
 Material Platinum 3
 
-Prop reflect RGB  0.673 0.637 0.585
+Prop absorbed RGB  0.673 0.637 0.585
+Prop eta Float  2.32
+Prop k Float  3.17
 
 Material Copper 3
 
-Prop reflect RGB  0.955 0.638 0.538
+Prop absorbed RGB  0.955 0.638 0.538
+Prop eta Float  0.64
+Prop k Float  2.65
 
 Material Palladium 3
 
-Prop reflect RGB  0.733 0.697 0.652
+Prop absorbed RGB  0.733 0.697 0.652
+Prop eta Float  1.77
+Prop k Float  3.44
 
 Material Mercury 3
 
-Prop reflect RGB  0.781 0.780 0.778
+Prop absorbed RGB  0.781 0.780 0.778
+Prop eta Float  2.73
+Prop k Float  6.00
 
 Material Brass(C260) 3
 
-Prop reflect RGB  0.910 0.778 0.423
+Prop absorbed RGB  0.910 0.778 0.423
+Prop eta Float  0.47
+Prop k Float  2.92
 
 Material Zinc 3
 
-Prop reflect RGB  0.664 0.824 0.850
+Prop absorbed RGB  0.664 0.824 0.850
+Prop eta Float  1.37
+Prop k Float  3.28
 
 Material Gold 3
 
-Prop reflect RGB  1.000 0.782 0.344
+Prop absorbed RGB  1.000 0.782 0.344
+Prop eta Float  0.47
+Prop k Float  2.85
 
 Material Aluminum 3
 
-Prop reflect RGB  0.913 0.922 0.924
+Prop absorbed RGB  0.913 0.922 0.924
+Prop eta Float  1.44
+Prop k Float  7.24
 
 Material Silver 3
 
-Prop reflect RGB  0.972 0.960 0.915
-
+Prop absorbed RGB  0.972 0.960 0.915
+Prop eta Float  0.14
+Prop k Float  4.08
 
 End
