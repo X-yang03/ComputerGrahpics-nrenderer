@@ -13,19 +13,19 @@ namespace OptimizedPathTracer
     return std::exp(-(x * x) / (2 * sigma * sigma));
     }
 
-    void bilateralFilter(RGBA* pixels, int width, int height){
-        float sigmaSpatial = 2.0f;
-        float sigmaRange = 0.1f;
-        int radius = 3;
-        RGB* result = new RGB[width * height]{};
+    void bilateralFilter(RGBA* pixels, int width, int height){ //尝试使用双边滤波来去噪，但是效果不是很好
+        float sigmaSpatial = 16.0f;
+        float sigmaRange = 0.2f;
+        int radius = 5;
+        RGB* result = new RGB[width * height]{}; //存储滤波后的结果
         for (int y = 0; y < height; ++y) {
             for (int x = 0; x < width; ++x) {
                 Vec3 sum = {0, 0, 0};
                 float weightSum = 0;
 
-                Vec3 centerColor = pixels[y * width + x];
+                Vec3 centerColor = pixels[y * width + x]; //中心像素的颜色
 
-                for (int ky = -radius; ky <= radius; ++ky) {
+                for (int ky = -radius; ky <= radius; ++ky) { //遍历周围像素
                     for (int kx = -radius; kx <= radius; ++kx) {
                         int nx = x + kx;
                         int ny = y + ky;
@@ -38,7 +38,7 @@ namespace OptimizedPathTracer
                                                                 (neighborColor - centerColor).g * (neighborColor - centerColor).g + 
                                                                 (neighborColor - centerColor).b * (neighborColor - centerColor).b), sigmaRange);
 
-                            float weight = spatialWeight * rangeWeight;
+                            float weight = spatialWeight * rangeWeight; //空间权重和颜色权重的乘积
                             sum = sum + neighborColor * weight;
                             weightSum += weight;
                         }
@@ -48,11 +48,12 @@ namespace OptimizedPathTracer
                 result[y * width + x] = sum * (1.0f / weightSum);
             }
          }
-          for (int y = 0; y < height; ++y) {
+          for (int y = 0; y < height; ++y) { //将滤波后的结果赋值给原始像素
             for (int x = 0; x < width; ++x) {
                 pixels[y * width + x] = {result[y * width + x],1};
             }
           }
+          delete[] result;
 
     }
 

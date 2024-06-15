@@ -39,8 +39,8 @@ Prop k Float  3.17
 Material Copper 3
 
 Prop absorbed RGB  0.955 0.638 0.538
-Prop eta Float  0.64
-Prop k Float  2.65
+Prop eta Float  0.29
+Prop k Float  3.88
 
 Material Palladium 3
 
