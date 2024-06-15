@@ -65,7 +65,7 @@ namespace PhotonMapper
 		}
         generatePhotonMap();
 
-        const auto taskNums = 6;
+        const auto taskNums = 16;
         thread t[taskNums];
         for (int i = 0; i < taskNums; i++) {
             t[i] = thread(&PhotonMapperRenderer::renderTask,

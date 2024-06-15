@@ -1,6 +1,16 @@
 服务于本科教学的三维渲染系统
 ---
 
+# 代码说明
+
+在`code/components/photon_mapping`与`code/components/optimized_path_tracing`下是我们的主要工作，其中：
+- `photon_mapping`实现了光子映射的渲染方法和KdTree数据结构
+- `optimized_path_tracing`实现了BVH加速，和优化的采样方法，有效提升了路径追踪的速度和质量
+- 两个渲染方法中，均实现了材质（绝缘体和导体），在`shaders/Glass.cpp`与`shaders/Conductor.cpp`中
+- `photon_mapping`中也应用了优化的采样方法，提升了渲染质量
+- `optimized_path_tracing`支持obj类模型的渲染
+
+
 # 环境配置
 
 + 操作系统: `Windows 10`
