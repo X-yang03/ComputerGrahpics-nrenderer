@@ -63,7 +63,7 @@ namespace PhotonMapper
         void release(const RenderResult& r);
 
     private:
-        void renderTask(RGBA* pixels, int width, int height, int off, int step);
+        void renderTask(RGBA* pixels, int width, int height/*, int off, int step*/);
 
         RGB gamma(const RGB& rgb);
         RGB trace(const Ray& ray, int currDepth);

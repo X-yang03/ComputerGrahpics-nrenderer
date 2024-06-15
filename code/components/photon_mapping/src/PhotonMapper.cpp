@@ -8,6 +8,8 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "Onb.hpp"
 
+#include "omp.h"
+
 #include <random>
 #include <queue>
 
@@ -17,8 +19,10 @@ namespace PhotonMapper
         return glm::sqrt(rgb);
     }
 
-    void PhotonMapperRenderer::renderTask(RGBA *pixels, int width, int height, int off, int step) {
-        for (int i = off; i < height; i += step) {
+    void PhotonMapperRenderer::renderTask(RGBA *pixels, int width, int height/*, int off, int step*/) {
+        #pragma omp parallel for
+        for (int i = 0; i < height; i++) {
+        //for (int i = off; i < height; i += step) {
             for (int j = 0; j < width; j++) {
                 Vec3 color{ 0, 0, 0 };
                 for (int k = 0; k < samples; k++) {
@@ -29,6 +33,7 @@ namespace PhotonMapper
                     float y = (float(i) + ry) / float(height); //随机采样的光线方向
                     auto ray = camera.shoot(x, y); //打出光线
                     color += OptTrace(ray, 0); //路径追踪渲染
+                    //color += trace(ray, 0); //路径追踪渲染
                 }
                 color /= samples; //平均
                 color = gamma(color);
@@ -60,20 +65,17 @@ namespace PhotonMapper
 		}
         generatePhotonMap();
 
-        const auto taskNums = 2;
-        thread t[taskNums];
-        for (int i = 0; i < taskNums; i++) {
-            t[i] = thread(&PhotonMapperRenderer::renderTask,
-                this, pixels, width, height, i, taskNums); //多线程渲染
-        }
-        for (int i = 0; i < taskNums; i++) {
-            t[i].join();
-        }
+        //const auto taskNums = 6;
+        //thread t[taskNums];
+        //for (int i = 0; i < taskNums; i++) {
+        //    t[i] = thread(&PhotonMapperRenderer::renderTask,
+        //        this, pixels, width, height, i, taskNums); //多线程渲染
+        //}
+        //for (int i = 0; i < taskNums; i++) {
+        //    t[i].join();
+        //}
+        renderTask(pixels, width, height);
         getServer().logger.log("Done...");
-
-        int64_t totalIntersections = Intersection::getIntersectionCount();
-        cout << "BVH intersection calls: " << totalIntersections << "with Sample: " << samples << std::endl;
-        Intersection::resetIntersectionCount();
 
         return { pixels, width, height };
     }
@@ -385,8 +387,8 @@ namespace PhotonMapper
                     L_dir = attenuation * directLighting;
                 }
 
-                auto next = OptTrace(scatteredRay, currDepth + 1);
-                if (next == radiance) next = Vec3(0.f);  //如果随机采样追踪的光线直接射到光源上, 避免二次叠加
+                //auto next = OptTrace(scatteredRay, currDepth + 1);
+                //if (next == radiance) next = Vec3(0.f);  //如果随机采样追踪的光线直接射到光源上, 避免二次叠加
                 float pdf = scattered.pdf;
 
                 auto nearPhotons = photonMap.nearestPhotons(hitObject->hitPoint, samplePhotonNum);
