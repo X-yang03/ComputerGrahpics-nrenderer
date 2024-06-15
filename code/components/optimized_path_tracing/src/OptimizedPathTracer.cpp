@@ -72,7 +72,7 @@ namespace OptimizedPathTracer
                     float x = (float(j)+rx)/float(width);
                     float y = (float(i)+ry)/float(height); //随机采样的光线方向
                     auto ray = camera.shoot(x, y); //打出光线
-                    color += trace(ray, 0); //路径追踪渲染
+                    color += OptTrace(ray, 0); //路径追踪渲染
                 }
                 color /= samples; //平均
                 color = gamma(color);

@@ -43,7 +43,6 @@ namespace OptimizedPathTracer
         //Vec3 refractionDirection = isEntering ? glm::normalize(glm::refract(I, N, 1.f / ior)) : glm::normalize(glm::refract(I, N, ior));
         Vec3 refractRatio = (1 - reflectance) * absorbed; //折射率
 
-        //float sin_r = std::pow(1 - std::pow(glm::dot(I, N), 2), 0.5) / ior; //sin(折射角) = sin(入射角) / 折射率
         if (cosTheta < 0.01f) { //全反射, 没有折射
             reflectRatio = absorbed;  
             refractionDirection = Vec3(0.f);
