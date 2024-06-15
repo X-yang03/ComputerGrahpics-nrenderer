@@ -24,7 +24,7 @@ namespace NRenderer
             , depth             (40)
             , samplesPerPixel   (16)
             , photonNum         (100000)
-            , samplePhotonNum   (50)
+            , samplePhotonNum   (10)
         {}
     };
 

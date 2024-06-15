@@ -8,7 +8,7 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "Onb.hpp"
 
-#include "omp.h"
+//#include "omp.h"
 
 #include <random>
 #include <queue>
@@ -19,10 +19,10 @@ namespace PhotonMapper
         return glm::sqrt(rgb);
     }
 
-    void PhotonMapperRenderer::renderTask(RGBA *pixels, int width, int height/*, int off, int step*/) {
-        #pragma omp parallel for
-        for (int i = 0; i < height; i++) {
-        //for (int i = off; i < height; i += step) {
+    void PhotonMapperRenderer::renderTask(RGBA *pixels, int width, int height, int off = 0, int step = 1) {
+        
+        //#pragma omp parallel for
+        for (int i = off; i < height; i += step) {
             for (int j = 0; j < width; j++) {
                 Vec3 color{ 0, 0, 0 };
                 for (int k = 0; k < samples; k++) {
@@ -65,16 +65,16 @@ namespace PhotonMapper
 		}
         generatePhotonMap();
 
-        //const auto taskNums = 6;
-        //thread t[taskNums];
-        //for (int i = 0; i < taskNums; i++) {
-        //    t[i] = thread(&PhotonMapperRenderer::renderTask,
-        //        this, pixels, width, height, i, taskNums); //多线程渲染
-        //}
-        //for (int i = 0; i < taskNums; i++) {
-        //    t[i].join();
-        //}
-        renderTask(pixels, width, height);
+        const auto taskNums = 6;
+        thread t[taskNums];
+        for (int i = 0; i < taskNums; i++) {
+            t[i] = thread(&PhotonMapperRenderer::renderTask,
+                this, pixels, width, height, i, taskNums); //多线程渲染
+        }
+        for (int i = 0; i < taskNums; i++) {
+            t[i].join();
+        }
+        //renderTask(pixels, width, height);
         getServer().logger.log("Done...");
 
         return { pixels, width, height };
@@ -106,6 +106,7 @@ namespace PhotonMapper
 
     void PhotonMapperRenderer::generatePhotonMap()
     {
+        getServer().logger.log("Photon trace generated...");
         for (int i = 0; i < photonNum; i++)
         {
             for (auto &areaLight : scene.areaLightBuffer)
@@ -142,7 +143,7 @@ namespace PhotonMapper
 		auto nextRay = scatteredRay;
         auto P_RR = 0.8f;
         pdf *= P_RR;
-        if (scene.materials[mtlHandle.index()].hasProperty("diffuseColor"))
+        if (spScene->materials[mtlHandle.index()].type == Material::LAMBERTIAN)
         {
             Photon photon{ hitObject->hitPoint, power, ray, scatteredRay, hitObject->normal };
             photons.push_back(photon);
@@ -153,7 +154,7 @@ namespace PhotonMapper
                 tracePhoton(nextRay, nextPower, depth + 1);
             }
         }
-        if (scene.materials[mtlHandle.index()].hasProperty("reflect"))
+        else if (spScene->materials[mtlHandle.index()].type == Material::CONDUCTOR || spScene->materials[mtlHandle.index()].type == Material::GLOSSY)
         {
             if (russian_roulette(P_RR))
             {
@@ -164,7 +165,7 @@ namespace PhotonMapper
                 tracePhoton(reflectedRay, nextPower, depth + 1);
             }
         }
-        if (scene.materials[mtlHandle.index()].hasProperty("ior"))
+        else if (spScene->materials[mtlHandle.index()].type == Material::DIELECTRIC || spScene->materials[mtlHandle.index()].type == Material::PLASTIC)
         {
             if (russian_roulette(P_RR))
             {
@@ -389,7 +390,9 @@ namespace PhotonMapper
 
                 //auto next = OptTrace(scatteredRay, currDepth + 1);
                 //if (next == radiance) next = Vec3(0.f);  //如果随机采样追踪的光线直接射到光源上, 避免二次叠加
+                //float n_dot_in = glm::dot(hitObject->normal, scatteredRay.direction);
                 float pdf = scattered.pdf;
+                //Vec3 L_indir = attenuation * next * n_dot_in / pdf;
 
                 auto nearPhotons = photonMap.nearestPhotons(hitObject->hitPoint, samplePhotonNum);
                 auto maxDistanceElement =

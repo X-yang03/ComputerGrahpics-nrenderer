@@ -21,7 +21,7 @@ namespace NRenderer
             , depth             (4)
             , samplesPerPixel   (16)
             , photonNum         (100000)
-            , samplePhotonNum   (50)
+            , samplePhotonNum   (10)
         {}
     };
     struct AmbientSettings

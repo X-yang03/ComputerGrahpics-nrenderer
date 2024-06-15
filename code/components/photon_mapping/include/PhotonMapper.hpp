@@ -63,7 +63,7 @@ namespace PhotonMapper
         void release(const RenderResult& r);
 
     private:
-        void renderTask(RGBA* pixels, int width, int height/*, int off, int step*/);
+        void renderTask(RGBA* pixels, int width, int height, int off, int step);
 
         RGB gamma(const RGB& rgb);
         RGB trace(const Ray& ray, int currDepth);
@@ -73,6 +73,7 @@ namespace PhotonMapper
         void tracePhoton(const Ray& ray, const RGB& power, int depth);
 
         RGB OptTrace(const Ray &ray, int currDepth);
+        void OptTracePhoton(const Ray &ray, const RGB &power, int depth);
         tuple<Vec3, Vec3> sampleOnlight(const AreaLight &light);
     };
 }
