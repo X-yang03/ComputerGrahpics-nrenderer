@@ -43,6 +43,12 @@ if (CMAKE_GENERATOR STREQUAL "Ninja")
 	endif()
 endif()
 
+#fix coding problem
+if (MSVC)
+    # set MSVC utf-8 build
+    add_compile_options(/utf-8)
+endif ()
+
 # Server
 file(GLOB_RECURSE SERVER_HEADER_FILES "${SERVER_HEADER_DIR}/*.h" "${SERVER_HEADER_DIR}/*.hpp")
 source_group("Header Files" FILES ${SERVER_HEADER_FILES})
