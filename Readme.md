@@ -9,7 +9,8 @@
 - 两个渲染方法中，均实现了材质（绝缘体和导体），在`shaders/Glass.cpp`与`shaders/Conductor.cpp`中
 - `photon_mapping`中也应用了优化的采样方法，提升了渲染质量
 - `optimized_path_tracing`支持obj类模型的渲染
-最终版本在**master分支中**，其他分支直接下载的文件可能会由于编码问题无法正常运行。
+
+代码最终版本在**master分支中**，其他分支直接下载的文件可能会由于编码问题无法正常运行。
 
 # 环境配置
 
